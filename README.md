@@ -3,6 +3,8 @@
 - [x] honeypot
 - [x] input
 - [x] textarea
+- [x] info
+- [x] notif
 - [ ] checkbox
 - [ ] checkbox group
 - [ ] radio
@@ -11,14 +13,13 @@
 - [ ] number group
 - [ ] password
 - [ ] Line
-- [x] info
 
 
 ## How to use in Templates
 
 **Honeypot**
 ```php
- <?php snippet('form/honeypot', ['name' => 'website']) ?>
+ <?php snippet('form-honeypot', ['name' => 'website']) ?>
 ```
 
 **Text**</br>
@@ -33,16 +34,19 @@ Info is a descriptive texte.
     'type'        => 'text',
     'pattern'     => '',
     'maxlength'   => '',
-    'required'    => true
+    'minlength'   => '',
+    'required'    => true // default false
 ]) ?>
 ```
 **Textarea**</br>
 ```php
-<?php snippet('components/input-textarea', [
+<?php snippet('form-textarea', [
     'id'          => 'message',
     'label'       => 'Message',
     'info'        => '',
     'rows'         => 5,
-    'required'    => false
+    'maxlength'   => '',
+    'minlength'   => '',
+    'required'    => true // default false
 ]) ?>
 ```

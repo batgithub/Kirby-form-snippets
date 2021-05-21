@@ -1,24 +1,35 @@
+<?php 
+    $isRequired = isset($required) ? $required : ''
+?>
+
 <div class="field <?= isset($alert[$id]) ? 'error' : '' ?>">
-    <label for="<?= $id ?>">
-        <?= $label ?> <?php if($required): ?> <abbr title="requis">*</abbr> <?php endif ?>
-    </label>
-    <div class="label-desc">
-        <?= $info ?> 
-    </div>
+    <?php  snippet('form-label', [
+            'label_text' => $label,
+            'id' => $id,
+            'required' => $isRequired
+    ]); ?>
+
+    <?php 
+        if(isset($info)): 
+            snippet('form-info', ['text' => $info]);
+        endif
+    ?>
+
     <input 
         type="<?= $type ?>" 
         id="<?= $id ?>" 
         name="<?= $id ?>" 
-        <?php if($placeholder !== ''): ?>placeholder="<?= $placeholder ?>"<?php endif ?>
-        <?php if($pattern !== ''): ?>pattern="<?= $pattern ?>"<?php endif ?>
-        <?php if($minlength !== ''): ?>minlength="<?= $minlength ?>"<?php endif ?>
-        <?php if($maxlength !== ''): ?>maxlength="<?= $maxlength ?>"<?php endif ?>
-        value="<?= $data[$id] ?? '' ?>"
-        <?php if($required): ?>required <?php endif ?>
+        <?= isset($placeholder) ? 'placeholder='.$placeholder : '' ?>
+        <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
+        <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
+        <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
+        <?= ($datas->old($id))  ? 'value='.$datas->old($id) : '' ?>
+        <?= ($isRequired) ? 'required' : '' ?>
     >
-    <?php if(isset($alert[$id]))  {
-        snippet('components/input-notif', [
-            'notif_text' => $alert[$id],
+
+    <?php if($datas->error($id))  {
+        snippet('form-notif', [
+            'notif_text' => implode('<br>', $datas->error('message')),
             'class' => 'error',
         ]);
     }?>

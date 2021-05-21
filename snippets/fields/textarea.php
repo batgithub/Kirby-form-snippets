@@ -1,26 +1,33 @@
+
+
 <div class="field <?= isset($alert[$id]) ? 'error' : '' ?>">
 
-    <label for="<?= $id ?>">
-        <?= $label ?> <?php if($required): ?> <abbr title="requis">*</abbr> <?php endif ?>
-    </label>
-    <div class="label-desc">
-        <?= $info ?> 
-    </div>
+    <?php  snippet('form-label', [
+        'label_text' => $label,
+        'id' => $id,
+        'required' => isset($required) ? $required : ''
+    ]); ?>
+
+
+    <?php 
+        if(isset($info)): 
+            snippet('info', ['text' => $info]);
+        endif
+    ?>
+
     <textarea 
-        class="w-full"
         type="text" 
         id="<?= $id ?>" 
         name="<?= $id ?>" 
-        rows="<?= $rows ?>"
-        <?php if($minlength !== ''): ?>minlength="<?= $minlength ?>"<?php endif ?>
-        <?php if($maxlength !== ''): ?>maxlength="<?= $maxlength ?>"<?php endif ?>
-        <?php if($required): ?>required <?php endif ?>
-    >
-        <?= $data[$id] ?? '' ?>
-    </textarea>
-    <?php if( isset($alert[$id]) )  {
-        snippet('components/input-notif', [
-            'notif_text' => $alert[$id],
+        <?= isset($rows) ? 'rows='.$rows : '' ?>
+        <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
+        <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
+        <?= isset($required) ? 'required' : '' ?>
+    ><?= ($datas->old($id))  ? $datas->old($id):'' ?></textarea>
+    
+    <?php if($datas->error($id))  {
+        snippet('form-notif', [
+            'notif_text' => implode('<br>', $datas->error('message')),
             'class' => 'error',
         ]);
     }?>

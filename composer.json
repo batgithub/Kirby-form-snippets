@@ -6,9 +6,12 @@
     "authors": [
         {
             "name": "Baptiste lhopitault",
-            "email": "contact@baptistelhopitault.fr",
+            "email": "contact@baptistelhopitault.fr"
         }
     ],
+    "extra": {
+        "installer-name": "kirby-form-snippets"
+    },
     "require": {
         "getkirby/composer-installer": "^1.1"
     }

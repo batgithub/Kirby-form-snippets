@@ -1,5 +1,7 @@
 # Kirby form snippets
 
+
+
 - [x] honeypot
 - [x] input
 - [x] textarea
@@ -14,6 +16,11 @@
 - [ ] password
 - [ ] Line
 
+## Dependances
+[Kirby uniform](https://github.com/mzur/kirby-uniform)<br> 
+```bash
+composer require mzur/kirby-uniform:^4.0
+```
 
 ## How to use in Templates
 

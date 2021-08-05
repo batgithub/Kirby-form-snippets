@@ -33,7 +33,7 @@ composer require mzur/kirby-uniform:^4.0
 Info is a descriptive texte.
 
 ```php
-<?php snippet('form/input', [
+<?php snippet('form-input', [
     'id'          => '',
     'label'       => '',
     'info'        => '',

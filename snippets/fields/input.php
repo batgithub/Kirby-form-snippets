@@ -23,13 +23,13 @@
         <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
-        <?= ($datas->old($id))  ? 'value='.$datas->old($id) : '' ?>
+        <?= ($form->old($id))  ? 'value='.$form->old($id) : '' ?>
         <?= ($isRequired) ? 'required' : '' ?>
     >
 
-    <?php if($datas->error($id))  {
+    <?php if($form->error($id))  {
         snippet('form-notif', [
-            'notif_text' => implode('<br>', $datas->error('message')),
+            'notif_text' => implode('<br>', $form->error('message')),
             'class' => 'error',
         ]);
     }?>

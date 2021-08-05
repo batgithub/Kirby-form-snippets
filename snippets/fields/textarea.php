@@ -23,11 +23,11 @@
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
         <?= isset($required) ? 'required' : '' ?>
-    ><?= ($datas->old($id))  ? $datas->old($id):'' ?></textarea>
+    ><?= ($form->old($id))  ? $form->old($id):'' ?></textarea>
     
-    <?php if($datas->error($id))  {
+    <?php if($form->error($id))  {
         snippet('form-notif', [
-            'notif_text' => implode('<br>', $datas->error('message')),
+            'notif_text' => implode('<br>', $form->error('message')),
             'class' => 'error',
         ]);
     }?>

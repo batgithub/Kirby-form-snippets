@@ -24,9 +24,12 @@ composer require mzur/kirby-uniform:^4.0
 
 ## How to use in Templates
 
-**Honeypot**
-```php
- <?php snippet('form-honeypot', ['name' => 'website']) ?>
+**form wrapper**
+```html
+ <form method="post" class="" action="<?= $page->url() ?>">
+      <?php snippet('form-honeypot', ['name' => 'website']) ?>
+      <input type="submit" value="Envoyer">
+ </form>
 ```
 
 **Text**</br>

@@ -14,7 +14,7 @@
 
     <?php 
         if(isset($info)): 
-            snippet('info', ['text' => $info]);
+            snippet('form-info', ['text' => $info]);
         endif
     ?>
 

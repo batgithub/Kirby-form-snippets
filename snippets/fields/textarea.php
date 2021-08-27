@@ -1,14 +1,14 @@
 <?php 
-
-
+    $isRequired = isset($required) ? $required : '';
+    $error = $form->error($id);
 ?>
 
-<div class="field <?= isset($alert[$id]) ? 'error' : '' ?>">
+<div class="field <?= empty($error) ? '' : 'error' ?>">
 
     <?php  snippet('form-label', [
         'label_text' => $label,
         'id' => $id,
-        'required' => isset($required) ? $required : ''
+        'required' => $isRequired
     ]); ?>
 
 
@@ -25,12 +25,12 @@
         <?= isset($rows) ? 'rows='.$rows : '' ?>
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
-        <?= isset($required) ? 'required' : '' ?>
+        <?= ($isRequired) ? 'required' : '' ?>
     ><?= ($form->old($id))  ? $form->old($id):'' ?></textarea>
     
-    <?php if($form->error($id))  {
+    <?php if(empty($error) == false)  {
         snippet('form-notif', [
-            'notif_text' => implode('<br>', $form->error('message')),
+            'notif_text' => implode('<br>', $error),
             'class' => 'error',
         ]);
     }?>

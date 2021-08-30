@@ -28,7 +28,7 @@ composer require mzur/kirby-uniform:^4.0
 ```html
  <form method="post" class="" action="<?= $page->url() ?>">
       <?php snippet('form-honeypot', ['name' => 'website']) ?>
-      <input type="submit" value="Envoyer">
+      <input type="submit"  name="submit"  value="Envoyer">
  </form>
 ```
 

@@ -23,7 +23,7 @@ composer require mzur/kirby-uniform:^4.0
 ```
 ## install as submodule
 Install repo as git submodule<br>
-```git submodule add -f https://github.com/batgithub/kirby-blocks-repliq.git composer/plugins/kirby-form-snippets```
+```git submodule add -f https://github.com/batgithub/Kirby-form-snippets.git composer/plugins/kirby-form-snippets```
 
 
 ## How to use in Templates

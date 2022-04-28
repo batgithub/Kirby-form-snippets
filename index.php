@@ -1,5 +1,10 @@
 <?php
 
+load([
+    'baptiste\\InputsForm' => '/classes/InputsForm.php',
+], __DIR__);
+
+use baptiste\InputsForm;
 
 Kirby::plugin('baptiste/kirby-form-snippets', [
     'snippets' => [

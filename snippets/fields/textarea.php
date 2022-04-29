@@ -25,6 +25,7 @@
         <?= isset($rows) ? 'rows='.$rows : '' ?>
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
+        <?= isset($placeholder) ? 'placeholder='.$placeholder : 'placeholder= "Votre réponse"' ?>
         <?= ($isRequired) ? 'required' : '' ?>
     ><?= ($form->old($id))  ? $form->old($id):'' ?></textarea>
     

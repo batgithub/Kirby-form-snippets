@@ -29,9 +29,19 @@ Install repo as git submodule<br>
 ## How to use in Templates
 
 **form wrapper**
-```html
- <form method="post" class="" action="<?= $page->url() ?>">
-      <?php snippet('form-honeypot', ['name' => 'website']) ?>
+```php
+ <form method="post" action="<?= $page->url() ?>">
+        <?php if(empty($form->error('website')) == false): ?>
+            <?php snippet('form-card', [
+                'text' => implode('<br>', $form->error('website')),
+                'class' => 'error'
+            ]) ?>
+        <?php endif; ?>
+        <?php snippet('form-honeypot', ['name' => 'website']) ?>
+        <?php echo csrf_field(); ?>
+
+        // <!-- Les snippets ici -->
+
       <input type="submit"  name="submit"  value="Envoyer">
  </form>
 ```
@@ -62,5 +72,28 @@ Info is a descriptive texte.
     'maxlength'   => '',
     'minlength'   => '',
     'required'    => true // default false
+]) ?>
+```
+**Checkbox**</br>
+```php
+<?php snippet('form-checkbox', [
+    'name'       => 'Checkbox',
+    'label'       => 'Checkbox 1',
+    'value'       => 'Checkbox 1',
+    'required'    => false // default false
+]) ?>
+```
+**Checkbox Group**</br>
+```php
+  <?php snippet('form-checkbox-group', [
+    'legend'       => 'Qu\'est ce que vous voulez ?',
+    'name'       => 'Checkbox',
+    'required'    => false,
+    'options'     => [
+        [  
+            'label'       => 'Checkbox 2 <a href="#">zoeifjzoefijzoeifj</a>',
+            'value'       => 'Checkbox ce soir'
+        ]
+    ]
 ]) ?>
 ```

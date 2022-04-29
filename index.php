@@ -5,6 +5,8 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
     'snippets' => [
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',
+        'form-checkbox' => __DIR__ . '/snippets/fields/checkbox.php',
+        'form-checkbox-group' => __DIR__ . '/snippets/fields/checkbox-group.php',
         'form-honeypot' => __DIR__ . '/snippets/fields/honeypot.php',
         'form-notif' => __DIR__ . '/snippets/fields/notif.php',
         'form-info' => __DIR__ . '/snippets/fields/info.php',

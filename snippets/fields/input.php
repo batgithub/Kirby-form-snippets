@@ -20,7 +20,7 @@
         type="<?= $type ?>" 
         id="<?= $id ?>" 
         name="<?= $id ?>" 
-        <?= isset($placeholder) ? 'placeholder='.$placeholder : '' ?>
+        <?= isset($placeholder) ? 'placeholder='.$placeholder : 'placeholder= "Votre réponse"' ?>
         <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>

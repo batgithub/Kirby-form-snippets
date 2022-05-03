@@ -17,7 +17,7 @@
     ?>
 
     <input 
-        type="<?= $type ?>" 
+        type="<?= isset($type) ? $type:'text' ?>" 
         id="<?= $id ?>" 
         name="<?= $id ?>" 
         <?= isset($placeholder) ? 'placeholder='.$placeholder : 'placeholder= "Votre réponse"' ?>

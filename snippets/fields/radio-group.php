@@ -10,11 +10,10 @@
     <fieldset>
         <legend><?= $legend ?></legend>
         <?php foreach(  $options as $index => $option): ?>
-            <?php snippet('form-checkbox', [
-                'name'        => $name.'[]',
+            <?php snippet('form-radio', [
+                'name'        => $name,
                 'label'       => $option["label"],
                 'value'       => $option["value"],
-                'checked'     => isset($option["checked"]),
                 'required'    => false
             ]) ?>
         <?php endforeach ?>

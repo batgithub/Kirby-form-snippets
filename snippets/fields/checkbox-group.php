@@ -1,6 +1,6 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
-    $id = $name;
+    $name = $id;
     $error = $form->error($id);
     $value = $form->old($id);
     $options = $options;
@@ -11,6 +11,7 @@
         <legend><?= $legend ?></legend>
         <?php foreach(  $options as $index => $option): ?>
             <?php snippet('form-checkbox', [
+                'id'          => $id.'-'.Str::kebab($option["value"]),
                 'name'        => $name.'[]',
                 'label'       => $option["label"],
                 'value'       => $option["value"],

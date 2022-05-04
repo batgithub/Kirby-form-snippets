@@ -1,6 +1,6 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
-    $id = Str::kebab($value);
+    $id = isset($id) ? $id : $name;
     $error = $form->error($id);
     $checked = isset($checked) ? $checked : false;
 ?>
@@ -12,8 +12,7 @@
             id="<?= $id ?>" 
             name="<?= $name ?>" 
             value="<?= $value ?>"
-            <?= ($value==$form->old($id)||  $checked) ? 'checked': '' ?>
-            <?php if($required): ?> required <?php endif ?>            
+            <?= ($value==$form->old($id)||  $checked) ? 'checked': '' ?>        
     >
     <label for="<?= $id ?>"> 
         <p class="cursor-pointer"><?= $label ?></p>

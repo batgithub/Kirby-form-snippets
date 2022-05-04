@@ -92,7 +92,7 @@ Install repo as git submodule<br>
 
 ```php
 <?php snippet('form-checkbox', [
-    'name'       => 'cgu',
+    'id'       => 'cgu',
     'label'       => 'en cochant vous acceptez les cgu',
     'value'       => 'cgu acceptées',
 ]) ?>
@@ -114,7 +114,7 @@ option `'checked' => true` possible pour sélectionner par défaut
 ```php
   <?php snippet('form-checkbox-group', [
     'legend'       => 'Qu\'est ce que vous voulez ?',
-    'name'       => 'Checkbox',
+    'id'       => 'Checkbox',
     'required'    => false,
     'options'     => [
         [  
@@ -141,7 +141,7 @@ option `'checked' => true` possible pour sélectionner par défaut
 ```php
   <?php snippet('form-radio-group', [
     'legend'       => 'Est-ce que vous êtes humain ?',
-    'name'       => 'humain',
+    'id'       => 'humain',
     'required'    => false,
     'options'     => [
         [  

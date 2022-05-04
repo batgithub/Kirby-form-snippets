@@ -1,5 +1,8 @@
 <?php
 
+load([
+    'repliq\\RepliqForm' => '/classes/form.php',
+], __DIR__);
 
 Kirby::plugin('baptiste/kirby-form-snippets', [
     'snippets' => [

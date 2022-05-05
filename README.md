@@ -40,7 +40,9 @@ Install repo as git submodule<br>
         <?php snippet('form-honeypot', ['name' => 'website']) ?>
         <?php echo csrf_field(); ?>
 
-        // <!-- Les snippets ici -->
+        <?php foreach( $classForm->getInputs() as $input): ?>
+            <?= $input ?>
+        <?php endforeach ?>
 
       <input type="submit"  name="submit"  value="Envoyer">
  </form>

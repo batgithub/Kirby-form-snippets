@@ -1,6 +1,6 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
-    $id = isset($id) ? $id : $name;
+    $name = isset($name) ? $name : $id;
     $error = $form->error($id);
     $checked = isset($checked) ? $checked : false;
 ?>

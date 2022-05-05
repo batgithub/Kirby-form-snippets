@@ -106,8 +106,7 @@ class RepliqForm {
         }
         return $snippets;
 
-    }
-    
+    }    
    
 
 }

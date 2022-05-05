@@ -5,6 +5,9 @@ load([
 ], __DIR__);
 
 Kirby::plugin('baptiste/kirby-form-snippets', [
+    'templates'=> [
+        'emails/submition.html' => __DIR__ . '/templates/emails/submition.html.php',
+    ],
     'snippets' => [
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',

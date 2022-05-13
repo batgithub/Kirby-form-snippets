@@ -5,25 +5,28 @@
     $checked = isset($checked) ? $checked : false;
 ?>
 
-<div class="field <?= empty($error) ? '' : 'error' ?>">
-    <input 
-            class="cursor-pointer"
-            type="checkbox" 
-            id="<?= $id ?>" 
-            name="<?= $name ?>" 
-            value="<?= $value ?>"
-            <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>        
-    >
-    <label for="<?= $id ?>"> 
-        <p class="cursor-pointer"><?= $label ?></p>
-    </label>
+<div class="field checkbox <?= empty($error) ? '' : 'error' ?>">
+    <div class="wrap-input">
+        <input 
+                class="cursor-pointer"
+                type="checkbox" 
+                id="<?= $id ?>" 
+                name="<?= $name ?>" 
+                value="<?= $value ?>"
+                <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>        
+        >
+        <label for="<?= $id ?>"> 
+            <p class="cursor-pointer"><?= $label ?></p>
+        </label>
 
-    
-    <?php if(empty($error) == false)  {
-        snippet('form-notif', [
-            'notif_text' => implode('<br>', $error),
-            'class' => 'error',
-        ]);
-    }?>
+        
+        <?php if(empty($error) == false)  {
+            snippet('form-notif', [
+                'notif_text' => implode('<br>', $error),
+                'class' => 'error',
+            ]);
+        }?>
+
+    </div>
     
 </div>

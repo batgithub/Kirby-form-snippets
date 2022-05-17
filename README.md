@@ -165,3 +165,20 @@ option `'checked' => true` possible pour sélectionner par défaut
 | options | ✅ | | tableau des cases. `label`,`value`et `checked` seulement sur une seule option 
 
 
+### Section title
+
+```php
+   "title-1"=>
+    [
+        "input"=>"section-title",
+        "id" => "title-1",
+        "title" => "Identité",
+        "tag" => 'h2'
+    ],
+```
+#### Options disponibles
+| Name | obligatoire | default | description 
+| --- | --- | --- | ---
+| id | ✅   |    | L'id peut servir d'ancre
+| tag | ✅ | | tag du titre (h1, h2, h3...)
+| title | ✅ | | Titre à afficher 

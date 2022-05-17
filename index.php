@@ -19,6 +19,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-notif' => __DIR__ . '/snippets/fields/notif.php',
         'form-info' => __DIR__ . '/snippets/fields/info.php',
         'form-label' => __DIR__ . '/snippets/fields/label.php',
-        'form-card' => __DIR__ . '/snippets/fields/card.php'
+        'form-card' => __DIR__ . '/snippets/fields/card.php',
+        'form-section-title' => __DIR__ . '/snippets/fields/section-title.php'
     ]
 ]);

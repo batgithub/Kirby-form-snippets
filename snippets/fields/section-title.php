@@ -1,4 +1,4 @@
-<a class="form-section-title field" id="<?= $id ?>" href="#<?= $id ?>">
+<a class="form-section-title <?= $tag ?> field" id="<?= $id ?>" href="#<?= $id ?>">
     <<?= $tag ?>>
         <?= $title ?>
     </<?= $tag ?>>

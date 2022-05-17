@@ -8,7 +8,7 @@
 
 <div class="field-group <?= empty($error) ? '' : 'error' ?>">
     <fieldset>
-        <legend><?= $legend ?></legend>
+        <legend><?= $label ?></legend>
         <?php foreach(  $options as $index => $option): ?>
             <?php snippet('form-radio', [
                 'id'          => $id.'-'.Str::kebab($option["value"]),

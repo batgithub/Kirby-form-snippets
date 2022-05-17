@@ -77,10 +77,12 @@ class RepliqForm {
                     break;
                 
                 case 'checkbox-group' :
+                    $rules[$id] = [];
                     break;
 
         
                 case 'radio-group' :
+                    $rules[$id] = [];
                     break;
         
     

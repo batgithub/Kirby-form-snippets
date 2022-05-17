@@ -8,13 +8,13 @@
 
 <div class="field-group <?= empty($error) ? '' : 'error' ?>">
     <fieldset>
-        <legend><?= $legend ?></legend>
-        <?php foreach(  $options as $index => $option): ?>
+        <legend><?= $label ?></legend>
+        <?php foreach(  $options as  $option): ?>
             <?php snippet('form-checkbox', [
-                'id'          => $id.'-'.Str::kebab($option["value"]),
+                'id'          => $id.'-'.Str::slug($option['label']),
                 'name'        => $name.'[]',
-                'label'       => $option["label"],
-                'value'       => $option["value"],
+                'label'       => $option['label'],
+                'value'       => Str::slug($option['label']),
                 'checked'     => isset($option["checked"]),
                 'required'    => false
             ]) ?>

@@ -12,7 +12,7 @@
                 type="checkbox" 
                 id="<?= $id ?>" 
                 name="<?= $name ?>" 
-                value="<?= $value ?>"
+                value="<?= Str::slug($label) ?>"
                 <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>        
         >
         <label for="<?= $id ?>"> 

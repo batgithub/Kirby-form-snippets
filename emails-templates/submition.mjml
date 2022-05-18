@@ -1,0 +1,68 @@
+<mjml>
+    <mj-head>
+        <mj-title>Nouvelle soumission</mj-title>
+        <mj-preview>Nouvelle soumisssion sur </mj-preview>
+        <mj-attributes>
+            <mj-all font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-all>
+            <mj-text font-weight="400" font-size="16px" color="#2B2B2B" padding="0px" line-height="24px" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-text>
+            <mj-section padding="0px">
+        </mj-attributes>
+        <mj-style>
+           ul {
+               margin-top:0px;
+               padding-left: 24px;
+
+            }
+    </mj-style>
+    </mj-head>
+  <mj-body background-color="#FBFBFB"  width="600px" >
+    <!-- Image Header -->
+    <mj-section padding="28px 0px 0px">
+        <mj-column width="100%" >
+           
+        </mj-column>
+    </mj-section>
+
+    <mj-section padding="28px 8px 32px">
+        <mj-column  width="100%" >
+            <mj-text font-size="24px" line-height="32px" font-weight="500">
+                Formulaire candidatez
+            </mj-text>
+            <mj-text font-size="16px"  padding="8px 0px 0px">
+                Le 18/03/2022 à 16h32
+            </mj-text>
+        </mj-column>
+    </mj-section>
+   
+    <!--   Block step  -->
+    <mj-wrapper  border="2px solid #000000" padding="32px 32px" background-color="white">
+        <mj-section padding="24px 0px 10px">
+            <mj-column width="100%" >
+                <mj-text font-weight="bold" font-size="14px">
+                    Label de la question un peu long parfois
+                </mj-text>
+                <mj-text font-size="18px">
+                   <?= $date ?> la Réponse qui peut être aussi un peu longue parfois
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-section padding="24px 0px 10px">
+            <mj-column width="100%" >
+                <mj-text font-weight="bold" font-size="14px">
+                    Label de la question un peu long parfois
+                </mj-text>
+                <mj-text font-size="18px">
+                    <ul>
+                        <li>la Réponse qui peut être aussi un peu longue parfois</li>
+                        <li>la Réponse qui peut être aussi un pois</li>
+                        <li>la Réponse qui peut être </li>
+                    </ul>
+                   
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-wrapper>
+
+    
+  </mj-body>
+</mjml>

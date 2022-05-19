@@ -26,16 +26,16 @@
     <mj-section padding="28px 8px 32px">
         <mj-column  width="100%" >
             <mj-text font-size="24px" line-height="32px" font-weight="500">
-                Formulaire candidatez
+                *********form title***********
             </mj-text>
             <mj-text font-size="16px"  padding="8px 0px 0px">
-                Le 18/03/2022 à 16h32
+                *********date***********
             </mj-text>
         </mj-column>
     </mj-section>
    
     <!--   Block step  -->
-    <mj-wrapper  border="2px solid #000000" padding="32px 32px" background-color="white">
+    <mj-wrapper  border="2px solid #CCC" padding="32px 32px" background-color="white">
         <mj-section padding="24px 0px 10px">
             <mj-column width="100%" >
                 <mj-text font-weight="bold" font-size="14px">

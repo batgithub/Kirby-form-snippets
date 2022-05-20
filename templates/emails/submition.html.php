@@ -3,7 +3,7 @@
     xmlns:o="urn:schemas-microsoft-com:office:office">
 
 <head>
-    <title>Nouvelle soumission</title>
+    <title>Formulaire <?= strtolower($formName) ?></title>
     <!--[if !mso]><!-- -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!--<![endif]-->
@@ -100,7 +100,7 @@
 <body style="background-color:#FBFBFB;">
     <div
         style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-        Nouvelle soumisssion sur</div>
+        <?= $date ?></div>
     <div style="background-color:#FBFBFB;">
         <!-- Image Header -->
         <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -109,7 +109,7 @@
                 <tbody>
                     <tr>
                         <td
-                            style="direction:ltr;font-size:0px;padding:28px 0px 0px;text-align:center;vertical-align:top;">
+                            style="direction:ltr;font-size:0px;padding:10px 0px 0px;text-align:center;vertical-align:top;">
                             <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
                             <div class="mj-column-per-100 outlook-group-fix"
                                 style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
@@ -128,7 +128,7 @@
                 <tbody>
                     <tr>
                         <td
-                            style="direction:ltr;font-size:0px;padding:28px 8px 32px;text-align:center;vertical-align:top;">
+                            style="direction:ltr;font-size:0px;padding:10px 8px 32px;text-align:center;vertical-align:top;">
                             <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:584px;" ><![endif]-->
                             <div class="mj-column-per-100 outlook-group-fix"
                                 style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
@@ -138,7 +138,7 @@
                                         <td align="left" style="font-size:0px;padding:0px;word-break:break-word;">
                                             <div
                                                 style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:24px;font-weight:500;line-height:32px;text-align:left;color:#2B2B2B;">
-                                                Formulaire <?= $formName ?></div>
+                                                Formulaire <?= strtolower($formName) ?></div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -166,7 +166,7 @@
                 <tbody>
                     <tr>
                         <td
-                            style="border:2px solid #CCC;direction:ltr;font-size:0px;padding:32px 32px;text-align:center;vertical-align:top;">
+                            style="border:2px solid #CCC;direction:ltr;font-size:0px;padding:16px 24px;text-align:center;vertical-align:top;">
 
                             <?php foreach($datas as $field => $data): ?>
 
@@ -179,7 +179,7 @@
                                     <tbody>
                                         <tr>
                                             <td
-                                                style="direction:ltr;font-size:0px;padding:24px 0px 10px;text-align:center;vertical-align:top;">
+                                                style="direction:ltr;font-size:0px;padding:8px 0px 10px;text-align:center;vertical-align:top;">
                                                 <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:532px;" ><![endif]-->
                                                 <div class="mj-column-per-100 outlook-group-fix"
                                                     style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
@@ -189,7 +189,7 @@
                                                             <td align="left"
                                                                 style="font-size:0px;padding:0px;word-break:break-word;">
                                                                 <div
-                                                                    style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:14px;font-weight:bold;line-height:24px;text-align:left;color:#2B2B2B;">
+                                                                    style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:14px;font-weight:bold;line-height:24px;text-align:left;color:#a1a1a1;">
                                                                     <?= $data['label'] ?></div>
                                                             </td>
                                                         </tr>

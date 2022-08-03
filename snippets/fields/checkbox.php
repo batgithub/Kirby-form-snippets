@@ -1,49 +1,37 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
+    $name = isset($name) ? $name : $id;
     $error = $form->error($id);
-    $value = $form->old($id);
+    $checked = isset($checked) ? $checked : false;
 ?>
 
-<div class="field <?= empty($error) ? '' : 'error' ?>">
-
-    <?php  snippet('form-label', [
-        'label_text' => $label,
-        'id' => $id,
-        'required' => $isRequired
-    ]); ?>
-
-
-    <?php 
-        if(isset($info)): 
-            snippet('form-info', ['text' => $info]);
-        endif
-    ?>
-
-
-    <input 
-            class="cursor-pointer"
-            type="checkbox" 
-            id="<?= $id ?>" 
-            name="<?= $name ?>" 
-            value="<?= $value ?>"
-            <?php if($required): ?>required <?php endif ?>            
+<div class="field checkbox <?= empty($error) ? '' : 'error' ?>">
+    <div class="wrap-input">
+        <input 
+                class="cursor-pointer"
+                type="checkbox" 
+                id="<?= $id ?>" 
+                name="<?= $name ?>" 
+                  <?php if(isset($value)):  ?>
+                    value="<?= $value ?>"
+                    <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>       
+                <?php else: ?>
+                    value="<?= Str::slug($label) ?>"
+                    <?= (Str::slug($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
+                <?php endif; ?>
         >
         <label for="<?= $id ?>"> 
-            <p class="cursor-pointer ml-2"><?= $label ?></p>
+            <p class="cursor-pointer"><?= $label ?></p>
         </label>
 
+        
+        <?php if(empty($error) == false)  {
+            snippet('form-notif', [
+                'notif_text' => implode('<br>', $error),
+                'class' => 'error',
+            ]);
+        }?>
 
-    <label>
-        <?php $value = $form->old('myfield') ?>
-        <input type="checkbox" name="myfield" value="true"<?php e(!$value || $value=='true', ' checked')?>/> Confirm
-    </label>
-   
-    
-    <?php if(empty($error) == false)  {
-        snippet('form-notif', [
-            'notif_text' => implode('<br>', $error),
-            'class' => 'error',
-        ]);
-    }?>
+    </div>
     
 </div>

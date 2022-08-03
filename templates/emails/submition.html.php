@@ -207,6 +207,8 @@
                                                                                 <?php endforeach ?>
                                                                             </ul>
 
+                                                                        <?php elseif($data['input'] == 'checkbox'):  ?>
+                                                                            <?= Str::replace($data['value'], '-', ' ') ?>
                                                                         <?php else : ?>
                                                                             <?= $data['value'] ?>
                                                                         <?php endif; ?>

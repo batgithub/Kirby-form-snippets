@@ -11,7 +11,7 @@
         <legend><?= $label ?></legend>
         <?php foreach(  $options as $index => $option): ?>
             <?php snippet('form-radio', [
-                'id'          => $id.'-'.Str::kebab($option["value"]),
+                'id'          => $id.'-'.urlencode($option["value"]),
                 'name'        => $name,
                 'label'       => $option["label"],
                 'value'       => $option["value"],

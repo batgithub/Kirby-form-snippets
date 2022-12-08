@@ -203,12 +203,13 @@
                                                                         <?php if($data['input'] == 'checkbox-group'): ?>
                                                                             <ul>
                                                                                 <?php foreach( $data['value'] as $item): ?>
-                                                                                <li><?= Str::replace($item, '-', ' ') ?></li>
+                                                                                <li><?= urldecode($item) ?></li>
                                                                                 <?php endforeach ?>
                                                                             </ul>
 
-                                                                        <?php elseif($data['input'] == 'checkbox'):  ?>
-                                                                            <?= Str::replace($data['value'], '-', ' ') ?>
+                                                                        <?php elseif($data['input'] == 'checkbox' || $data['input'] == 'select'):  ?>
+                                                                            <?= urldecode($data['value']) ?>
+                                                                        
                                                                         <?php else : ?>
                                                                             <?= $data['value'] ?>
                                                                         <?php endif; ?>

@@ -71,6 +71,22 @@ class RepliqForm {
                     break;
                
                
+                case 'select' :
+                    $inputRules = [];
+                    $inputMessages = [];
+                    
+                    if(isset($input['required']) && $input['required'] == true ): 
+                        array_push($inputRules, 'required');
+                        array_push($inputMessages, 'Merci de selectionner un élément');
+                    endif;
+
+                    $rules[$id] = [ 
+                        'rules' => $inputRules,
+                        'message' => $inputMessages
+                    ];
+
+                    break;
+               
                 case 'checkbox' :
                     $rules[$id] = [];
 

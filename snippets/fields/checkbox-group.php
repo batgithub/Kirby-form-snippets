@@ -11,10 +11,10 @@
         <legend><?= $label ?></legend>
         <?php foreach(  $options as  $option): ?>
             <?php snippet('form-checkbox', [
-                'id'          => $id.'-'.Str::slug($option['label']),
+                'id'          => $id.'-'.urlencode($option['label']),
                 'name'        => $name.'[]',
                 'label'       => $option['label'],
-                'value'       => Str::slug($option['label']),
+                'value'       => urlencode($option['label']),
                 'checked'     => isset($option["checked"]),
                 'required'    => false
             ]) ?>

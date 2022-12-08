@@ -12,12 +12,12 @@
                 type="checkbox" 
                 id="<?= $id ?>" 
                 name="<?= $name ?>" 
-                  <?php if(isset($value)):  ?>
+                <?php if(isset($value)):  ?>
                     value="<?= $value ?>"
                     <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>       
                 <?php else: ?>
-                    value="<?= Str::slug($label) ?>"
-                    <?= (Str::slug($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
+                    value="<?= urlencode($label) ?>"
+                    <?= (urlencode($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
                 <?php endif; ?>
         >
         <label for="<?= $id ?>"> 

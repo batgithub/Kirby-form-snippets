@@ -1,5 +1,6 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
+    $multiselect = isset($multiselect) ? true : false;
     $name = $id;
     $error = $form->error($id);
     $value = $form->old($id);
@@ -21,7 +22,8 @@
 
 
     <select 
-        name="<?= $id ?>" 
+        <?= $multiselect ? 'multiple' : '' ?>
+        name="<?= $id ?><?= $multiselect ? '[]' : '' ?>" 
         id="<?= $id ?>"
         <?= ($isRequired) ? 'required' : '' ?>
     >

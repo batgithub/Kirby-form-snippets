@@ -7,20 +7,21 @@
 
 <div class="field checkbox <?= empty($error) ? '' : 'error' ?>">
     <div class="wrap-input">
-        <input 
-                class="cursor-pointer"
-                type="checkbox" 
-                id="<?= $id ?>" 
-                name="<?= $name ?>" 
-                <?php if(isset($value)):  ?>
-                    value="<?= $value ?>"
-                    <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>       
-                <?php else: ?>
-                    value="<?= urlencode($label) ?>"
-                    <?= (urlencode($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
-                <?php endif; ?>
-        >
         <label for="<?= $id ?>"> 
+            <input 
+                    class="cursor-pointer"
+                    type="checkbox" 
+                    id="<?= $id ?>" 
+                    name="<?= $name ?>" 
+                    <?php if(isset($value)):  ?>
+                        value="<?= $value ?>"
+                        <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>       
+                    <?php else: ?>
+                        value="<?= urlencode($label) ?>"
+                        <?= (urlencode($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
+                    <?php endif; ?>
+            >
+       
             <p class="cursor-pointer"><?= $label ?></p>
         </label>
 

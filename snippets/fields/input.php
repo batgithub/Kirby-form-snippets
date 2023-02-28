@@ -1,6 +1,7 @@
 <?php 
     $isRequired = isset($required) ? $required : '';
     $error = $form->error($id);
+    $value = isset($value) ? 'value="'.$value.'"' : "";
 ?>
 
 <div class="field <?= empty($error) ? '' : 'error' ?>">
@@ -24,7 +25,7 @@
         <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
         <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
         <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
-        <?= ($form->old($id))  ? 'value='.$form->old($id) : '' ?>
+        <?= ($form->old($id))  ? 'value='.$form->old($id) : $value ?>
         <?= ($isRequired) ? 'required' : '' ?>
     >
 

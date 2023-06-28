@@ -138,7 +138,7 @@
                                         <td align="left" style="font-size:0px;padding:0px;word-break:break-word;">
                                             <div
                                                 style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:24px;font-weight:500;line-height:32px;text-align:left;color:#2B2B2B;">
-                                                Formulaire <?= strtolower($formName) ?></div>
+                                                <?= $formName ?></div>
                                         </td>
                                     </tr>
                                     <tr>

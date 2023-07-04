@@ -37,6 +37,8 @@
                     value="<?= urlencode($option['label']) ?>"
                     <?= (urlencode($option['label']) == $form->old($id) ||  isset($option['selected'])) ? 'selected': '' ?>       
                 <?php endif; ?>
+
+                <?= isset($option['disabled']) ? 'disabled': '' ?>
                 
             ><?= $option['label'] ?>
             </option>

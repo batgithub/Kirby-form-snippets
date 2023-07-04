@@ -77,7 +77,7 @@ class RepliqForm {
                     
                     if(isset($input['required']) && $input['required'] == true ): 
                         array_push($inputRules, 'required');
-                        array_push($inputMessages, 'Merci de selectionner un élément');
+                        array_push($inputMessages, 'Merci de sélectionner un élément');
                     endif;
 
                     $rules[$id] = [ 

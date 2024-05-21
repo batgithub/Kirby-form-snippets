@@ -43,6 +43,11 @@ class RepliqForm {
                         array_push($inputMessages, 'Veuillez entrer un format d\'email valide.');
                     endif;
 
+                    if($input['type'] == "phone"): 
+                        array_push($inputRules, 'tel');
+                        array_push($inputMessages, 'Veuillez entrer un format de téléphone valide.');
+                    endif;
+
                     $inputRules['maxLength'] = 1000;
                     array_push($inputMessages,'Votre réponse est limitée à 1000 caractères');
                     

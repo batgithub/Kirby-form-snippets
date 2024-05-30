@@ -1,4 +1,4 @@
 <label for="<?= $id ?>">
     <?= $label_text ?> 
-    <?=  ($required == true) ? '<abbr title="requis">*</abbr>' : '' ?>
+    <?=  ($required == false) ? '<span>(facultatif)</span>' : '' ?>
 </label>

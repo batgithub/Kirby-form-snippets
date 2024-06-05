@@ -35,17 +35,17 @@ class RepliqForm {
                     
                     if(isset($input['required']) && $input['required'] == true ): 
                         array_push($inputRules, 'required');
-                        array_push($inputMessages, 'Merci d\'entrer une réponse');
+                        array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Merci d\'entrer une réponse');
                     endif;
                     
                     if($input['type'] == "email"): 
                         array_push($inputRules, 'email');
-                        array_push($inputMessages, 'Veuillez entrer un format d\'email valide.');
+                        array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Veuillez entrer un format d\'email valide.');
                     endif;
 
                     if($input['type'] == "phone"): 
                         array_push($inputRules, 'tel');
-                        array_push($inputMessages, 'Veuillez entrer un format de téléphone valide.');
+                        array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Veuillez entrer un format de téléphone valide.');
                     endif;
 
                     $inputRules['maxLength'] = 1000;
@@ -63,7 +63,7 @@ class RepliqForm {
                     
                     if(isset($input['required']) && $input['required'] == true ): 
                         array_push($inputRules, 'required');
-                        array_push($inputMessages, 'Merci d\'entrer une réponse');
+                        array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Merci d\'entrer une réponse');
                     endif;
 
                     $inputRules['maxLength'] = 3000;
@@ -82,7 +82,7 @@ class RepliqForm {
                     
                     if(isset($input['required']) && $input['required'] == true ): 
                         array_push($inputRules, 'required');
-                        array_push($inputMessages, 'Merci de selectionner un élément');
+                        array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Merci de selectionner un élément');
                     endif;
 
                     $rules[$id] = [ 

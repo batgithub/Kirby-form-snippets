@@ -23,10 +23,8 @@
             name="<?= $id ?>" 
             <?= isset($placeholder) ? 'placeholder="'.$placeholder.'"' : 'placeholder= "Votre réponse"' ?>
             <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
-            <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
-            <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
             <?= ($form->old($id))  ? 'value='.$form->old($id) : '' ?>
-            <?= ($isRequired) ? 'required' : '' ?>
+           
         >
     </div>
 

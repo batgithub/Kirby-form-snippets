@@ -23,17 +23,15 @@
             id="<?= $id ?>" 
             name="<?= $id ?>" 
             <?= isset($rows) ? 'rows='.$rows : '' ?>
-            <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
-            <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
             <?= isset($placeholder) ? 'placeholder='.$placeholder : 'placeholder= "Votre réponse"' ?>
-            <?= ($isRequired) ? 'required' : '' ?>
+           
         ><?= ($form->old($id))  ? $form->old($id):'' ?></textarea>
-        
+    </div>
         <?php if(empty($error) == false)  {
             snippet('form-notif', [
                 'notif_text' => implode('<br>', $error),
                 'class' => 'error',
             ]);
         }?>
-    </div>
+    
 </div>

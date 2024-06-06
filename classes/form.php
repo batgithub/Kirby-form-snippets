@@ -48,7 +48,8 @@ class RepliqForm {
                         array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Veuillez entrer un format de téléphone valide.');
                     endif;
 
-                    $inputRules['maxLength'] = 1000;
+                    $inputRules['maxLength'] = isset($input['maxlength']) ? $input['maxlength'] : '1000';
+                    $inputRules['minLength'] =  isset($input['minlength']) ? $input['minlength'] : '10';
                     array_push($inputMessages,'Votre réponse est limitée à 1000 caractères');
                     
                     $rules[$id] = [ 
@@ -65,8 +66,8 @@ class RepliqForm {
                         array_push($inputRules, 'required');
                         array_push($inputMessages, isset($input['error']) ? $input['error'] : 'Merci d\'entrer une réponse');
                     endif;
-
-                    $inputRules['maxLength'] = 3000;
+                    $inputRules['maxLength'] = isset($input['maxlength']) ? $input['maxlength'] : '3000';
+                    $inputRules['minLength'] =  isset($input['minlength']) ? $input['minlength'] : '10';
                     array_push($inputMessages,'Votre réponse est limitée à 3000 caractères');
                     
                     $rules[$id] = [ 
@@ -74,8 +75,7 @@ class RepliqForm {
                         'message' => $inputMessages
                     ];
                     break;
-               
-               
+
                 case 'select' :
                     $inputRules = [];
                     $inputMessages = [];

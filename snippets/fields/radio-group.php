@@ -10,9 +10,12 @@
 <div class="field-group <?= empty($error) ? '' : 'error' ?>">
     <fieldset
         aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
-        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= empty($error) ? '' : 'aria-describedby="' . esc($id . '-error', 'attr') . '"' ?>
     >
-        <legend><?= html($label) ?></legend>
+        <legend>
+            <?= html($label) ?>
+            <?= ($required === true) ? '<abbr title="requis">*</abbr>' : '' ?>
+        </legend>
         <?php foreach ($options as $option): ?>
             <?php $optionValue = RepliqForm::optionValue($option); ?>
             <?php snippet('form-radio', [

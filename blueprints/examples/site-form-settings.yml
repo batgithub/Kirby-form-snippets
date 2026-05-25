@@ -1,0 +1,31 @@
+# Champs Site à copier dans site/blueprints/site.yml
+# Complètent les options de formulaires et les destinataires email gérés depuis le Panel.
+
+contactSubjects:
+  type: structure
+  label: Sujets de contact
+  help: Options complémentaires pour les champs select (via optionsFrom)
+  fields:
+    label:
+      type: text
+      label: Libellé affiché
+      required: true
+    value:
+      type: text
+      label: Valeur soumise
+      required: true
+
+formRecipients:
+  type: structure
+  label: Destinataires par formulaire
+  help: Correspondance formKey → email (via email.toFrom)
+  fields:
+    formKey:
+      type: text
+      label: Clé formulaire
+      required: true
+      help: Ex. contact, devis
+    email:
+      type: email
+      label: Destinataire
+      required: true

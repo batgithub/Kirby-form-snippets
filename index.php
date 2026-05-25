@@ -1,12 +1,16 @@
 <?php
 
 load([
+    'repliq\\RepliqFilterState' => '/classes/filter-state.php',
     'repliq\\RepliqForm' => '/classes/form.php',
 ], __DIR__);
+
+require_once __DIR__ . '/helpers.php';
 
 Kirby::plugin('baptiste/kirby-form-snippets', [
     'options' => [
         'placeholder' => 'Votre réponse',
+        'forms' => [],
         'maxLength' => [
             'input' => 1000,
             'textarea' => 3000,
@@ -25,11 +29,44 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'honeypot' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
             'in' => 'La valeur selectionnée n\'est pas valide',
         ],
+        'csrf' => [
+            'route' => 'kirby-form-snippets/csrf-token',
+            'field' => 'csrf_token',
+            'formSelector' => 'form',
+        ],
+        'submit' => [
+            'route' => 'kirby-form-snippets/submit',
+        ],
+        'defaultEmailTo' => null,
+        'defaultEmailTemplate' => 'emails/submition.html',
+    ],
+    'routes' => function () {
+        return [
+            [
+                'pattern' => option('baptiste.kirby-form-snippets.csrf.route'),
+                'method' => 'GET',
+                'action' => function () {
+                    return Response::json(['token' => csrf()]);
+                },
+            ],
+            [
+                'pattern' => option('baptiste.kirby-form-snippets.submit.route') . '/(:any)',
+                'method' => 'POST',
+                'action' => function (string $key) {
+                    repliq\RepliqForm::handleSubmit($key);
+                },
+            ],
+        ];
+    },
+    'blueprints' => [
+        'blocks/contact-form' => __DIR__ . '/blueprints/blocks/contact-form.yml',
     ],
     'templates' => [
         'emails/submition.html' => __DIR__ . '/templates/emails/submition.html.php',
     ],
     'snippets' => [
+        'form-page' => __DIR__ . '/snippets/form-page.php',
+        'form-filter' => __DIR__ . '/snippets/form-filter.php',
         'form-fields' => __DIR__ . '/snippets/form-fields.php',
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',
@@ -38,12 +75,15 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-checkbox-group' => __DIR__ . '/snippets/fields/checkbox-group.php',
         'form-radio-group' => __DIR__ . '/snippets/fields/radio-group.php',
         'form-honeypot' => __DIR__ . '/snippets/fields/honeypot.php',
-        'form-notif' => __DIR__ . '/snippets/fields/notif.php',
+        'form-csrf' => __DIR__ . '/snippets/fields/csrf.php',
+        'form-csrf-refresh' => __DIR__ . '/snippets/form-csrf-refresh.php',
         'form-field-errors' => __DIR__ . '/snippets/fields/field-errors.php',
+        'form-line' => __DIR__ . '/snippets/fields/line.php',
         'form-info' => __DIR__ . '/snippets/fields/info.php',
         'form-label' => __DIR__ . '/snippets/fields/label.php',
         'form-card' => __DIR__ . '/snippets/fields/card.php',
         'form-section-title' => __DIR__ . '/snippets/fields/section-title.php',
         'form-select' => __DIR__ . '/snippets/fields/select.php',
+        'blocks/contact-form' => __DIR__ . '/snippets/blocks/contact-form.php',
     ],
 ]);

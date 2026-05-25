@@ -1,11 +1,12 @@
+<?php $name = $name ?? $id; ?>
 <div class="honeypot" aria-hidden="true">
-    <label for="<?= attr($name) ?>" aria-hidden="true" style="display: none;">
+    <label for="<?= esc($name, 'attr') ?>" aria-hidden="true" style="display: none;">
         <?= html($name) ?> <abbr title="requis">*</abbr>
     </label>
     <input
         type="text"
-        id="<?= attr($name) ?>"
-        name="<?= attr($name) ?>"
+        id="<?= esc($name, 'attr') ?>"
+        name="<?= esc($name, 'attr') ?>"
         autocomplete="off"
         tabindex="-1"
     >

@@ -10,6 +10,7 @@
     $placeholderText = isset($placeholder)
         ? $placeholder
         : option('baptiste.kirby-form-snippets.placeholder');
+    $maxlengthAttr = $maxlength ?? option('baptiste.kirby-form-snippets.maxLength.input');
 ?>
 
 <div class="field <?= empty($error) ? '' : 'error' ?>">
@@ -24,16 +25,16 @@
     <?php endif ?>
 
     <input
-        type="<?= attr($inputType) ?>"
-        id="<?= attr($id) ?>"
-        name="<?= attr($id) ?>"
-        placeholder="<?= attr($placeholderText) ?>"
-        <?= isset($pattern) ? 'pattern="' . attr($pattern) . '"' : '' ?>
-        <?= isset($minlength) ? 'minlength="' . attr($minlength) . '"' : '' ?>
-        <?= isset($maxlength) ? 'maxlength="' . attr($maxlength) . '"' : '' ?>
-        value="<?= attr($form->old($id)) ?>"
+        type="<?= esc($inputType, 'attr') ?>"
+        id="<?= esc($id, 'attr') ?>"
+        name="<?= esc($id, 'attr') ?>"
+        placeholder="<?= esc($placeholderText, 'attr') ?>"
+        <?= isset($pattern) ? 'pattern="' . esc($pattern, 'attr') . '"' : '' ?>
+        <?= isset($minlength) ? 'minlength="' . esc($minlength, 'attr') . '"' : '' ?>
+        maxlength="<?= esc($maxlengthAttr, 'attr') ?>"
+        value="<?= esc($form->old($id), 'attr') ?>"
         aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
-        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= empty($error) ? '' : 'aria-describedby="' . esc($id . '-error', 'attr') . '"' ?>
         <?= $isRequired ? 'required' : '' ?>
     >
 

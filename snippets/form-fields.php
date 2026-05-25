@@ -2,16 +2,17 @@
 
 use repliq\RepliqForm;
 
-if (!isset($form)) {
+if (!isset($form, $formConfig) || !$formConfig instanceof RepliqForm) {
     return;
 }
 
-if (isset($formConfig) && $formConfig instanceof RepliqForm) {
-    $config = $formConfig;
-} elseif (isset($fields) && is_array($fields)) {
-    $config = new RepliqForm($fields);
-} else {
-    return;
+$config = $formConfig;
+
+if (($mode ?? 'submit') !== 'filter') {
+    snippet('form-csrf');
+    snippet('form-csrf-refresh', [
+        'formSelector' => $formSelector ?? null,
+    ]);
 }
 
 foreach ($config->getInputs($form) as $field): ?>

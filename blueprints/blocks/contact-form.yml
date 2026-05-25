@@ -1,0 +1,21 @@
+name: Formulaire de contact
+icon: email
+preview: fields
+wysiwyg: true
+fields:
+  formKey:
+    type: text
+    label: Clé du formulaire (formKey)
+    default: contact
+    required: true
+    help: Correspond à une clé de baptiste.kirby-form-snippets.forms
+    width: 1/2
+  submitLabel:
+    type: text
+    label: Libellé du bouton
+    default: Envoyer
+    width: 1/2
+  successMessage:
+    type: text
+    label: Message de succès
+    default: Merci, votre message a bien été envoyé.

@@ -18,20 +18,23 @@ value="<?= $form->old($id) ?>"
 // ✅ GOOD — contenu texte
 <?= html($label) ?>
 
-// ✅ GOOD — attribut HTML
-<input value="<?= attr($form->old($id)) ?>">
+// ✅ GOOD — valeur d'attribut HTML (Kirby 5)
+<input value="<?= esc($form->old($id), 'attr') ?>">
+
+// ✅ GOOD — plusieurs attributs (Kirby 5)
+<input <?= attr(['id' => $id, 'name' => $id, 'required' => $isRequired ?: null]) ?>>
 
 // ✅ GOOD — objets Kirby
 <?= $page->title()->esc() ?>
 ```
 
-Utiliser `html()` pour le contenu, `attr()` pour les attributs, `$field->esc()` pour les champs Kirby.
+Utiliser `html()` pour le contenu, `esc($value, 'attr')` pour une valeur d'attribut, `attr([...])` pour un tableau d'attributs (Kirby 5), `$field->esc()` pour les champs Kirby.
 
 ## Formulaires
 
 - Validation serveur systématique (Uniform ou équivalent) ; règles dans une classe dédiée, pas dans les snippets
-- Protection CSRF via Uniform (`csrf` guard)
-- Honeypot anti-spam : champ masqué avec `aria-hidden="true"`, validation `maxLength` côté serveur
+- Protection CSRF via Uniform ; routes `csrf.route` et `submit.route` du plugin + snippets `form-csrf` / `form-csrf-refresh`
+- Honeypot anti-spam : champ masqué avec `aria-hidden="true"`, `HoneypotGuard` Uniform synchronisé sur le nom du champ (clé ou `name` dans la config)
 - Limiter la longueur des champs (`maxLength` dans les règles)
 - Ne jamais exposer d'erreurs techniques en production ; messages génériques pour l'utilisateur
 - Pas de credentials en dur ; secrets via variables d'environnement ou options Kirby

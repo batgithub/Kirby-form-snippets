@@ -17,7 +17,7 @@ Objectif : WCAG 2.1 niveau AA minimum.
 ```php
 // ✅ GOOD
 snippet('form-label', ['label_text' => $label, 'id' => $id, 'required' => $isRequired]);
-<input id="<?= attr($id) ?>" name="<?= attr($id) ?>" <?= $isRequired ? 'required' : '' ?>>
+<input id="<?= esc($id, 'attr') ?>" name="<?= esc($id, 'attr') ?>" <?= $isRequired ? 'required' : '' ?>>
 ```
 
 ## Groupes de champs
@@ -34,12 +34,12 @@ snippet('form-label', ['label_text' => $label, 'id' => $id, 'required' => $isReq
 ```php
 // ✅ GOOD
 <input
-    id="<?= attr($id) ?>"
+    id="<?= esc($id, 'attr') ?>"
     aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
-    <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+    <?= empty($error) ? '' : 'aria-describedby="' . esc($id . '-error', 'attr') . '"' ?>
 >
 <?php if (!empty($error)): ?>
-    <span id="<?= attr($id . '-error') ?>" class="notif error" role="alert">
+    <span id="<?= esc($id . '-error', 'attr') ?>" class="notif error" role="alert">
         <?= html(implode(' ', $error)) ?>
     </span>
 <?php endif ?>

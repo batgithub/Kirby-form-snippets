@@ -1,115 +1,160 @@
 # Kirby form snippets
 
-## Présentation générale
+Formulaires Kirby **sans contrôleur de page** : déclarez une config, passez un `formKey`, placez le snippet où vous voulez. Validation, CSRF, honeypot et envoi d'email via [Uniform](https://github.com/mzur/kirby-uniform) v5.
 
-Ce plugin Kirby permet de créer des formulaires plus facilement. Il permet de :
+## Prérequis
 
-- créer un formulaire à partir d'un tableau
-- récupérer les éléments (règles de validation, liste des inputs) grâce à une [classe](classes/form.php)
-- envoyer un email retournant la totalité des informations entrées dans le formulaire
-- créer des inputs de formulaire grâce aux snippets
+- Kirby 3.5+, 4 ou 5
+- [mzur/kirby-uniform](https://github.com/mzur/kirby-uniform) ^5.0
+- Configuration email Kirby ([guide](https://getkirby.com/docs/guide/emails))
 
-## Dépendances
-
-[Kirby Uniform](https://github.com/mzur/kirby-uniform)
+## Installation
 
 ```bash
 composer require mzur/kirby-uniform:^5.0
 ```
 
-Ce plugin ne fonctionne pas sans Uniform. La version 5.x est compatible avec Kirby 3.5+, 4 et 5.
+Installez ce plugin (Composer ou [submodule](https://github.com/batgithub/Kirby-form-snippets)).
 
-## Installation en submodule
-
-```bash
-git submodule add -f https://github.com/batgithub/Kirby-form-snippets.git composer/plugins/kirby-form-snippets
-```
-
-## Utilisation
-
-### Configuration des champs
-
-Définir un tableau de champs. La clé du tableau devient l'`id` du champ (utilisé pour `name`, règles Uniform, etc.) :
+Ajoutez dans `site/config/config.php` :
 
 ```php
-use repliq\RepliqForm;
-use Uniform\Form;
-
-$fields = [
-    'email' => [
-        'input' => 'input',
-        'type' => 'email',
-        'label' => 'Adresse email',
-        'required' => true,
+'cache' => [
+    'ignore' => [
+        'kirby-form-snippets/csrf-token',
+        'kirby-form-snippets/submit',
     ],
-    'message' => [
-        'input' => 'textarea',
-        'label' => 'Message',
-        'required' => true,
-    ],
-];
-
-$formConfig = new RepliqForm($fields);
-$form = new Form($formConfig->getRules());
+],
 ```
 
-### Rendu des champs
+## Démarrage rapide
 
-Le snippet `form-fields` parcourt la configuration et affiche chaque champ (avec `id` et `form` injectés automatiquement) :
-
-```php
-<?php snippet('form-fields', [
-    'formConfig' => $formConfig,
-    'form' => $form,
-]) ?>
-```
-
-Vous pouvez aussi passer directement le tableau de champs, sans instancier `RepliqForm` une seconde fois pour le rendu :
-
-```php
-<?php snippet('form-fields', [
-    'fields' => $fields,
-    'form' => $form,
-]) ?>
-```
-
-Pour un contrôle fin du markup (wrapper par champ, grille, etc.), `getInputs()` reste disponible :
-
-```php
-<?php foreach ($formConfig->getInputs($form) as $field): ?>
-    <div class="form-row"><?= $field ?></div>
-<?php endforeach ?>
-```
-
-### Options configurables
+### 1. Déclarer le formulaire
 
 Dans `site/config/config.php` :
 
 ```php
-return [
-    'baptiste.kirby-form-snippets.placeholder' => 'Votre réponse',
-    'baptiste.kirby-form-snippets.maxLength.input' => 1000,
-    'baptiste.kirby-form-snippets.messages.required' => 'Merci d\'entrer une réponse',
-];
+'baptiste.kirby-form-snippets.forms' => [
+    'contact' => [
+        'fields' => [
+            'name' => [
+                'input' => 'input',
+                'label' => 'Nom',
+                'required' => true,
+            ],
+            'email' => [
+                'input' => 'input',
+                'type' => 'email',
+                'label' => 'Adresse email',
+                'required' => true,
+            ],
+            'message' => [
+                'input' => 'textarea',
+                'label' => 'Message',
+                'required' => true,
+            ],
+            'website' => [
+                'input' => 'honeypot',
+            ],
+        ],
+        'email' => [
+            'to' => 'contact@example.com',
+            'from' => 'noreply@example.com',
+            'subject' => 'Nouveau message depuis le site',
+        ],
+    ],
+],
 ```
 
-### Snippets disponibles
+La clé `contact` est votre `formKey` (identifiant libre).
 
-| Snippet | Rôle |
-|---------|------|
-| `form-fields` | rendu de tous les champs d'une configuration |
-| `form-input` | type `input` |
-| `form-textarea` | `textarea` |
-| `form-select` | `select` |
-| `form-checkbox` | `checkbox` |
-| `form-checkbox-group` | `checkbox-group` |
-| `form-radio-group` | `radio-group` |
-| `form-honeypot` | `honeypot` |
-| `form-label`, `form-info`, `form-notif`, `form-field-errors` | composition |
-| `form-card`, `form-section-title` | mise en page |
+### 2. Afficher le formulaire
 
-Les options de select, checkbox et checkbox-group utilisent `value` si présent, sinon un slug dérivé du `label`.
+Dans un template, un snippet ou un block :
+
+```php
+<?php snippet('form-page', ['formKey' => 'contact']) ?>
+```
+
+C'est tout. Le plugin gère validation, CSRF, honeypot, envoi email et redirection vers la page courante.
+
+## Deux modes
+
+| Mode | Config | Snippet | Méthode | Rôle |
+|------|--------|---------|---------|------|
+| **Email** | `submit` (défaut) | `form-page` | POST | Envoi email |
+| **Filtre** | `'mode' => 'filter'` | `form-filter` | GET | Affiche le formulaire ; **vous** filtrez dans le template |
+
+La structure des champs se déclare toujours dans `config.php`.
+
+### Filtre en bref
+
+```php
+// config.php
+'blog-filter' => [
+    'mode' => 'filter',
+    'fields' => [
+        'category' => [
+            'input' => 'select',
+            'label' => 'Catégorie',
+            'options' => [['label' => 'Toutes', 'value' => '']],
+            'optionsFrom' => ['type' => 'pages', 'parent' => 'blog/categories'],
+        ],
+    ],
+],
+```
+
+```php
+// template blog.php
+<?php snippet('form-filter', ['formKey' => 'blog-filter']) ?>
+
+<?php
+$articles = $page->children()->listed();
+if ($cat = get('category')) {
+    $articles = $articles->filterBy('category', $cat);
+}
+?>
+```
+
+Scénarios complets (Panel, controller, tags…) → [docs/examples.md](docs/examples.md).
+
+## Cas courants
+
+| Besoin | Voir |
+|--------|------|
+| Options statiques, Panel ou callable | [docs/inputs.md](docs/inputs.md#alimenter-les-options-dun-select-radio-ou-checkbox-group) |
+| Email selon l'objet choisi | [docs/examples.md](docs/examples.md#contact--email-selon-lobjet) |
+| Filtre blog avec catégories / tags | [docs/examples.md](docs/examples.md#filtre-blog) |
+| Overrides depuis un controller | [docs/examples.md](docs/examples.md#options-depuis-un-controller) |
+| Markup HTML personnalisé | [docs/examples.md](docs/examples.md#markup-personnalisé) |
+| Personnalisation CSS | [docs/style.md](docs/style.md) |
+| Block Panel | [docs/examples.md](docs/examples.md#block-panel) |
+
+## Block Kirby
+
+Autorisez le block fourni par le plugin dans votre blueprint :
+
+```yaml
+fields:
+  blocks:
+    type: blocks
+    fieldsets:
+      contact-form: blocks/contact-form
+```
+
+Le block expose `formKey`, `submitLabel` et `successMessage` dans le Panel.
+
+## Documentation
+
+| Fichier | Contenu |
+|---------|---------|
+| **[README.md](README.md)** | Installation et démarrage rapide (ce fichier) |
+| **[docs/](docs/)** | Index de la documentation |
+| **[docs/inputs.md](docs/inputs.md)** | Référence des champs, options, `toFrom`, checklists |
+| **[docs/examples.md](docs/examples.md)** | Scénarios d'implémentation pas à pas |
+| **[docs/style.md](docs/style.md)** | Personnalisation visuelle (classes, CSS) |
+| **[docs/tech.md](docs/tech.md)** | Architecture, routes, CSRF, flux internes |
 
 ## Wiki
 
-[Allez voir le wiki](https://github.com/batgithub/Kirby-form-snippets/wiki)
+[Wiki du projet](https://github.com/batgithub/Kirby-form-snippets/wiki)

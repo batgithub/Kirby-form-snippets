@@ -3,7 +3,7 @@
     $headingTag = isset($tag) && in_array($tag, $allowedTags, true) ? $tag : 'h2';
 ?>
 
-<a class="form-section-title <?= attr($headingTag) ?> field" id="<?= attr($id) ?>" href="#<?= attr($id) ?>">
+<a class="form-section-title <?= esc($headingTag, 'attr') ?> field" id="<?= esc($id, 'attr') ?>" href="#<?= esc($id, 'attr') ?>">
     <<?= $headingTag ?>>
         <?= html($title) ?>
     </<?= $headingTag ?>>

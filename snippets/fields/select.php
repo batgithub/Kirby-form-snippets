@@ -22,17 +22,17 @@
 
     <select
         <?= $multiselect ? 'multiple' : '' ?>
-        name="<?= attr($id . ($multiselect ? '[]' : '')) ?>"
-        id="<?= attr($id) ?>"
+        name="<?= esc($id . ($multiselect ? '[]' : ''), 'attr') ?>"
+        id="<?= esc($id, 'attr') ?>"
         aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
-        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= empty($error) ? '' : 'aria-describedby="' . esc($id . '-error', 'attr') . '"' ?>
         <?= $isRequired ? 'required' : '' ?>
     >
 
         <?php foreach ($options as $option): ?>
             <?php $optionValue = RepliqForm::optionValue($option); ?>
             <option
-                value="<?= attr($optionValue) ?>"
+                value="<?= esc($optionValue, 'attr') ?>"
                 <?php if ($multiselect): ?>
                     <?= in_array($optionValue, $oldValues, true) || isset($option['selected']) ? 'selected' : '' ?>
                 <?php else: ?>

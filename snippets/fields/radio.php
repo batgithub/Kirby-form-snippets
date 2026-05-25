@@ -12,15 +12,15 @@
         <input
             class="cursor-pointer"
             type="radio"
-            id="<?= attr($id) ?>"
-            name="<?= attr($name) ?>"
-            value="<?= attr($value) ?>"
+            id="<?= esc($id, 'attr') ?>"
+            name="<?= esc($name, 'attr') ?>"
+            value="<?= esc($value, 'attr') ?>"
             <?= $inGroup ? '' : 'aria-invalid="' . (empty($error) ? 'false' : 'true') . '"' ?>
-            <?= (!$inGroup && !empty($error)) ? 'aria-describedby="' . attr($id . '-error') . '"' : '' ?>
+            <?= (!$inGroup && !empty($error)) ? 'aria-describedby="' . esc($id . '-error', 'attr') . '"' : '' ?>
             <?= $isChecked ? 'checked' : '' ?>
             <?= $isRequired ? 'required' : '' ?>
         >
-        <label for="<?= attr($id) ?>">
+        <label for="<?= esc($id, 'attr') ?>">
             <p class="cursor-pointer"><?= html($label) ?></p>
         </label>
     </div>

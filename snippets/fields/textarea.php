@@ -4,6 +4,7 @@
     $placeholderText = isset($placeholder)
         ? $placeholder
         : option('baptiste.kirby-form-snippets.placeholder');
+    $maxlengthAttr = $maxlength ?? option('baptiste.kirby-form-snippets.maxLength.textarea');
 ?>
 
 <div class="field <?= empty($error) ? '' : 'error' ?>">
@@ -19,14 +20,14 @@
     <?php endif ?>
 
     <textarea
-        id="<?= attr($id) ?>"
-        name="<?= attr($id) ?>"
-        <?= isset($rows) ? 'rows="' . attr($rows) . '"' : '' ?>
-        <?= isset($minlength) ? 'minlength="' . attr($minlength) . '"' : '' ?>
-        <?= isset($maxlength) ? 'maxlength="' . attr($maxlength) . '"' : '' ?>
-        placeholder="<?= attr($placeholderText) ?>"
+        id="<?= esc($id, 'attr') ?>"
+        name="<?= esc($id, 'attr') ?>"
+        <?= isset($rows) ? 'rows="' . esc($rows, 'attr') . '"' : '' ?>
+        <?= isset($minlength) ? 'minlength="' . esc($minlength, 'attr') . '"' : '' ?>
+        maxlength="<?= esc($maxlengthAttr, 'attr') ?>"
+        placeholder="<?= esc($placeholderText, 'attr') ?>"
         aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
-        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= empty($error) ? '' : 'aria-describedby="' . esc($id . '-error', 'attr') . '"' ?>
         <?= $isRequired ? 'required' : '' ?>
     ><?= html($form->old($id)) ?></textarea>
 

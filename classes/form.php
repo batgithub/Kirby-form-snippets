@@ -11,6 +11,15 @@ use Uniform\Form;
 
 class RepliqForm
 {
+    /** @var list<string> */
+    private const EMAIL_SKIP_INPUTS = [
+        'honeypot',
+        'line',
+        'section-title',
+        'card',
+        'info',
+    ];
+
     private array $inputs;
 
     private string $mode;
@@ -72,14 +81,23 @@ class RepliqForm
             go('/');
         }
 
-        $form = new Form((new self($config['fields']))->getRules());
+        $formConfig = new self($config['fields']);
+        $form = new Form($formConfig->getRules());
         $honeypotField = self::resolveHoneypotField($config['fields']);
 
         if ($honeypotField !== null) {
             $form->honeypotGuard(['field' => $honeypotField]);
         }
 
-        $emailConfig = self::resolveEmailConfig($config['email'] ?? [], $key);
+        $email = is_array($config['email'] ?? null) ? $config['email'] : [];
+        $emailConfig = self::resolveEmailConfig($email, $key);
+        $emailConfig['data'] = array_merge(
+            $formConfig->buildEmailData($form, $config, $key),
+            is_array($emailConfig['data'] ?? null) ? $emailConfig['data'] : []
+        );
+
+        unset($emailConfig['theme'], $emailConfig['themeFrom'], $emailConfig['templateData']);
+
         $form->emailAction($emailConfig)->done();
     }
 
@@ -170,6 +188,56 @@ class RepliqForm
         }
 
         return $email;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return array<string, mixed>
+     */
+    public function buildEmailData(Form $form, array $config, string $formKey): array
+    {
+        $email = is_array($config['email'] ?? null) ? $config['email'] : [];
+        $theme = self::resolveEmailTheme($email, $formKey);
+        $templateData = is_array($email['templateData'] ?? null) ? $email['templateData'] : [];
+
+        $site = site();
+        $formName = is_string($config['title'] ?? null) && $config['title'] !== ''
+            ? $config['title']
+            : $formKey;
+        $date = self::formatEmailDate();
+
+        $data = [
+            'formName' => $formName,
+            'formKey' => $formKey,
+            'date' => $date,
+            'datas' => $this->buildEmailFieldsData($form, $theme),
+            'theme' => $theme,
+            'preview' => is_string($theme['preview'] ?? null) && $theme['preview'] !== ''
+                ? $theme['preview']
+                : $formName . ' · ' . $date,
+            'siteName' => $site?->title()->value() ?? '',
+            'siteUrl' => $site?->url() ?? '',
+        ];
+
+        return array_merge($data, $templateData);
+    }
+
+    /**
+     * @param array<string, mixed> $email
+     * @return array<string, mixed>
+     */
+    public static function resolveEmailTheme(array $email, string $formKey): array
+    {
+        $defaults = option('baptiste.kirby-form-snippets.defaultEmailTheme');
+        $defaults = is_array($defaults) ? $defaults : [];
+        $theme = is_array($email['theme'] ?? null) ? $email['theme'] : [];
+
+        if (isset($email['themeFrom'])) {
+            $fromPanel = self::resolveThemeFrom($email['themeFrom'], $formKey);
+            $theme = array_replace_recursive($fromPanel, $theme);
+        }
+
+        return self::mergeEmailTheme($defaults, $theme);
     }
 
     public function getRules(): array
@@ -477,6 +545,306 @@ class RepliqForm
         $value = $page->{$field}()->value();
 
         return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @param array<string, mixed> $base
+     * @param array<string, mixed> $override
+     * @return array<string, mixed>
+     */
+    private static function mergeEmailTheme(array $base, array $override): array
+    {
+        $merged = array_replace_recursive($base, $override);
+        $site = site();
+
+        if (($merged['logoLink'] ?? null) === null && $site !== null) {
+            $merged['logoLink'] = $site->url();
+        }
+
+        if (($merged['logoAlt'] ?? null) === null && $site !== null) {
+            $merged['logoAlt'] = $site->title()->value();
+        }
+
+        return $merged;
+    }
+
+    /**
+     * @param array<string, mixed>|string $themeFrom
+     * @return array<string, mixed>
+     */
+    private static function resolveThemeFrom(array|string $themeFrom, string $formKey): array
+    {
+        if (is_string($themeFrom)) {
+            return self::resolveThemeFromPath($themeFrom);
+        }
+
+        $field = $themeFrom['field'] ?? null;
+
+        if (!is_string($field) || $field === '') {
+            return [];
+        }
+
+        $page = self::resolveContentPage($themeFrom['page'] ?? 'site');
+
+        if ($page === null) {
+            return [];
+        }
+
+        $structure = $page->{$field}()->toStructure();
+
+        if ($structure->isEmpty()) {
+            return [];
+        }
+
+        $matchKey = $themeFrom['match'] ?? null;
+
+        if (is_string($matchKey) && $matchKey !== '') {
+            foreach ($structure as $item) {
+                if ($item->{$matchKey}()->value() === $formKey) {
+                    return self::mapStructureItemToTheme($item);
+                }
+            }
+
+            return [];
+        }
+
+        return self::mapStructureItemToTheme($structure->first());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function resolveThemeFromPath(string $path): array
+    {
+        $parts = explode('.', $path, 2);
+
+        if (count($parts) !== 2) {
+            return [];
+        }
+
+        [$pageId, $fieldName] = $parts;
+        $page = self::resolveContentPage($pageId);
+
+        if ($page === null) {
+            return [];
+        }
+
+        $field = $page->{$fieldName}();
+
+        if ($field->isEmpty()) {
+            return [];
+        }
+
+        $structure = $field->toStructure();
+
+        if ($structure->isNotEmpty()) {
+            return self::mapStructureItemToTheme($structure->first());
+        }
+
+        $file = $field->toFile();
+
+        if ($file !== null) {
+            return ['logo' => $file->absoluteUrl()];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function mapStructureItemToTheme(StructureObject $item): array
+    {
+        $theme = [];
+        $colorKeys = ['pageBg', 'cardBg', 'border', 'label', 'text', 'accent'];
+        $scalarKeys = ['logoAlt', 'logoLink', 'intro', 'footer', 'preview', 'fontFamily', 'width'];
+
+        foreach ($colorKeys as $key) {
+            $value = $item->{$key}()->value();
+
+            if ($value === '' && $key === 'accent') {
+                $value = $item->accentColor()->value();
+            }
+
+            if ($value !== '') {
+                $theme['colors'][$key] = $value;
+            }
+        }
+
+        foreach ($scalarKeys as $key) {
+            $value = $item->{$key}()->value();
+
+            if ($value !== '') {
+                $theme[$key] = $key === 'width' ? (int) $value : $value;
+            }
+        }
+
+        if ($item->logo()->isNotEmpty()) {
+            $logo = $item->logo()->toFile();
+
+            if ($logo !== null) {
+                $theme['logo'] = $logo->absoluteUrl();
+            }
+        }
+
+        if (($theme['logo'] ?? null) === null && $item->emailLogo()->isNotEmpty()) {
+            $logo = $item->emailLogo()->toFile();
+
+            if ($logo !== null) {
+                $theme['logo'] = $logo->absoluteUrl();
+            }
+        }
+
+        $hideEmpty = $item->hideEmptyFields()->toBool();
+
+        if ($hideEmpty) {
+            $theme['hideEmptyFields'] = true;
+        }
+
+        return $theme;
+    }
+
+    /**
+     * @param array<string, mixed> $theme
+     * @return array<string, array<string, mixed>>
+     */
+    private function buildEmailFieldsData(Form $form, array $theme): array
+    {
+        $datas = [];
+
+        foreach ($this->inputs as $id => $field) {
+            if (self::shouldSkipEmailField($field)) {
+                continue;
+            }
+
+            $raw = $form->data($id);
+            $value = $this->resolveFieldDisplayValue($field, $raw);
+
+            if (($theme['hideEmptyFields'] ?? false) === true && self::isEmptyEmailValue($value)) {
+                continue;
+            }
+
+            $datas[$id] = [
+                'label' => is_string($field['label'] ?? null) ? $field['label'] : $id,
+                'value' => $value,
+                'input' => is_string($field['input'] ?? null) ? $field['input'] : 'input',
+            ];
+        }
+
+        return $datas;
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     */
+    private function resolveFieldDisplayValue(array $field, mixed $raw): string|array
+    {
+        $input = $field['input'] ?? 'input';
+
+        return match ($input) {
+            'checkbox' => ($raw !== null && $raw !== '') ? 'Oui' : 'Non',
+            'checkbox-group' => $this->resolveOptionLabels($field, is_array($raw) ? $raw : []),
+            'select', 'radio-group' => $this->resolveSelectDisplayValue($field, $raw),
+            default => is_array($raw) ? implode(', ', array_map('strval', $raw)) : (string) ($raw ?? ''),
+        };
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     */
+    private function resolveSelectDisplayValue(array $field, mixed $raw): string|array
+    {
+        if (isset($field['multiselect']) && $field['multiselect'] === true) {
+            return $this->resolveOptionLabels($field, is_array($raw) ? $raw : []);
+        }
+
+        return $this->resolveOptionLabel($field, is_scalar($raw) ? (string) $raw : '');
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     * @param array<int, mixed> $values
+     * @return array<int, string>
+     */
+    private function resolveOptionLabels(array $field, array $values): array
+    {
+        $labels = [];
+
+        foreach ($values as $value) {
+            if (!is_scalar($value) || (string) $value === '') {
+                continue;
+            }
+
+            $labels[] = $this->resolveOptionLabel($field, (string) $value);
+        }
+
+        return $labels;
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     */
+    private function resolveOptionLabel(array $field, string $value): string
+    {
+        if ($value === '') {
+            return '';
+        }
+
+        if (!isset($field['options']) || !is_array($field['options'])) {
+            return $value;
+        }
+
+        foreach ($field['options'] as $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+
+            if (self::optionValue($option) === $value) {
+                return (string) ($option['label'] ?? $value);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     */
+    private static function shouldSkipEmailField(array $field): bool
+    {
+        $input = $field['input'] ?? null;
+
+        return is_string($input) && in_array($input, self::EMAIL_SKIP_INPUTS, true);
+    }
+
+    private static function isEmptyEmailValue(mixed $value): bool
+    {
+        if (is_array($value)) {
+            return $value === [];
+        }
+
+        return $value === null || $value === '';
+    }
+
+    private static function formatEmailDate(): string
+    {
+        $kirby = kirby();
+        $locale = $kirby?->language()?->code() ?? 'fr_FR';
+
+        if (class_exists(\IntlDateFormatter::class)) {
+            $formatter = new \IntlDateFormatter(
+                $locale,
+                \IntlDateFormatter::LONG,
+                \IntlDateFormatter::SHORT
+            );
+            $formatted = $formatter->format(time());
+
+            if (is_string($formatted) && $formatted !== '') {
+                return $formatted;
+            }
+        }
+
+        return date('d/m/Y H:i');
     }
 
     private static function resolveContentPage(string $pageId): Page|\Kirby\Cms\Site|null

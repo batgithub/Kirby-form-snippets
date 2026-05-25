@@ -39,6 +39,26 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         ],
         'defaultEmailTo' => null,
         'defaultEmailTemplate' => 'emails/submition.html',
+        'defaultEmailTheme' => [
+            'width' => 600,
+            'fontFamily' => "'Helvetica Neue', Helvetica, Arial, sans-serif",
+            'colors' => [
+                'pageBg' => '#F5F5F5',
+                'cardBg' => '#FFFFFF',
+                'border' => '#E5E5E5',
+                'label' => '#737373',
+                'text' => '#171717',
+                'accent' => '#2563EB',
+            ],
+            'logo' => null,
+            'logoAlt' => null,
+            'logoLink' => null,
+            'intro' => null,
+            'footer' => null,
+            'preview' => null,
+            'hideEmptyFields' => false,
+            'emptyPlaceholder' => '—',
+        ],
     ],
     'routes' => function () {
         return [

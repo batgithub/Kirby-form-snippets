@@ -728,6 +728,8 @@ Formulaire de contact avec structure, validation et honeypot :
         'from' => 'noreply@example.com',
         'subject' => 'Contact site web',
         // 'template' => 'emails/submition.html',  // optionnel — défaut plugin
+        // 'theme' => ['intro' => '…', 'colors' => ['accent' => '#2563EB']],
+        // 'themeFrom' => 'site.emailBranding',
     ],
 ],
 ```

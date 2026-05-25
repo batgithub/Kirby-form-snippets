@@ -165,7 +165,8 @@ Flux `RepliqForm::handleSubmit($key)` :
 2. `new Form($formConfig->getRules())`
 3. `honeypotGuard(['field' => …])` si un champ `honeypot` est déclaré (nom = clé ou `name`)
 4. `resolveEmailConfig()` — `toFrom`, `defaultEmailTo`, `defaultEmailTemplate`
-5. `$form->emailAction($emailConfig)->done()`
+5. `buildEmailData()` — `$formName`, `$date`, `$datas`, `$theme` injectés dans `email.data`
+6. `$form->emailAction($emailConfig)->done()`
 
 Uniform expose `old()`, `error()`, `success()` pour le re-rendu.
 
@@ -204,6 +205,7 @@ Préfixe : `baptiste.kirby-form-snippets.`
 | `submit.route` | Préfixe URL soumission |
 | `defaultEmailTo` | Fallback `toFrom` |
 | `defaultEmailTemplate` | Template email Uniform si absent de la config (`emails/submition.html`) |
+| `defaultEmailTheme` | Thème visuel par défaut de l'email (couleurs, logo, intro, footer…) |
 
 Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `in`.
 
@@ -214,7 +216,58 @@ Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `required
 
 ## Template email
 
-### Flux de maintenance
+### Thème (niveau 1)
+
+Personnalisation visuelle **sans modifier le HTML** : option globale `defaultEmailTheme` + surcharge par formulaire via `email.theme`.
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'defaultEmailTheme' => [
+        'colors' => ['accent' => '#E11D48'],
+        'logo' => 'https://example.com/logo.png',
+    ],
+    'forms' => [
+        'contact' => [
+            'title' => 'Contact',
+            'email' => [
+                'theme' => [
+                    'intro' => 'Nouveau message via le formulaire contact.',
+                    'footer' => 'Ne pas répondre directement à cet email.',
+                ],
+                // Depuis le Panel (structure ou fichier) :
+                // 'themeFrom' => 'site.emailBranding',
+                // 'themeFrom' => ['field' => 'formEmailThemes', 'match' => 'formKey'],
+            ],
+        ],
+    ],
+],
+```
+
+| Clé `theme` | Rôle |
+|-------------|------|
+| `colors.pageBg`, `cardBg`, `border`, `label`, `text`, `accent` | Couleurs (inline CSS) |
+| `width` | Largeur max en px (défaut `600`) |
+| `fontFamily` | Police |
+| `logo`, `logoAlt`, `logoLink` | En-tête avec logo |
+| `intro`, `footer`, `preview` | Textes |
+| `hideEmptyFields` | Masquer les champs vides |
+| `emptyPlaceholder` | Texte si valeur vide (défaut `—`) |
+
+`themeFrom` : chemin Kirby (`site.emailLogo` pour un fichier, `site.emailBranding` pour une structure Panel). Avec `match`, la structure peut cibler un `formKey`.
+
+Données supplémentaires dans le template : `email.templateData` (fusionné dans les variables).
+
+### Données injectées
+
+`RepliqForm::buildEmailData()` est appelé à la soumission et passe à Uniform :
+
+- `$formName` — `config.title` ou `formKey`
+- `$date` — date localisée
+- `$datas` — champs soumis (labels résolus pour select/radio/checkbox-group ; honeypot et champs décoratifs exclus)
+- `$theme` — thème fusionné
+- `$preview`, `$siteName`, `$siteUrl`
+
+### Flux de maintenance (MJML)
 
 ```mermaid
 flowchart LR
@@ -222,24 +275,19 @@ flowchart LR
     htmlRef["emails-templates/submition.html"]
     phpTpl["templates/emails/submition.html.php"]
     mjml -->|"export MJML"| htmlRef
-    htmlRef -->|"adapter boucle PHP sur $datas"| phpTpl
+    htmlRef -->|"référence visuelle"| phpTpl
     phpTpl -->|"Uniform emailAction"| email["Email envoyé"]
 ```
 
 | Fichier | Rôle |
 |---------|------|
-| `emails-templates/submition.mjml` | Maquette MJML (placeholders statiques) |
+| `emails-templates/submition.mjml` | Maquette MJML (référence, non chargée) |
 | `emails-templates/submition.html` | Export HTML de référence — **non chargé** à l'exécution |
 | `templates/emails/submition.html.php` | Template Kirby réel, enregistré comme `emails/submition.html` |
 
-Pour modifier le design : éditer le MJML, exporter en HTML, reprendre manuellement la structure dans le `.php` (boucle `foreach ($datas as …)`). Ne pas ré-exporter le HTML par-dessus le `.php`.
+Pour un design entièrement custom : surcharger `site/templates/emails/submition.html.php` ou définir `email.template`.
 
-### Variables du template
-
-- `$formName`, `$date`, `$datas` (label / value / input par champ)
-- Les `checkbox-group` sont rendus en liste `<ul>` dans le template PHP
-
-### Configuration
+### Configuration template
 
 Par défaut, `resolveEmailConfig()` applique `defaultEmailTemplate` (`emails/submition.html`) si `email.template` est absent. Surcharge possible par formulaire ou via l'option plugin.
 

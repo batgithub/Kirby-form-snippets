@@ -18,5 +18,24 @@
     },
     "suggest": {
         "mzur/kirby-uniform": "Required for form validation and submission (^5.0)"
+    },
+    "require-dev": {
+        "getkirby/cms": "^5.0",
+        "phpunit/phpunit": "^11.0",
+        "mzur/kirby-uniform": "^5.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "getkirby/composer-installer": true
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Repliq\\Tests\\": "tests/suites/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml.dist",
+        "test:coverage": "phpunit --configuration phpunit.xml.dist --coverage-text"
     }
 }

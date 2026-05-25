@@ -448,3 +448,4 @@ templates/emails/submition.html.php
 - [README.md](../README.md) — installation et démarrage
 - [inputs.md](inputs.md) — référence des champs
 - [examples.md](examples.md) — scénarios d'implémentation
+- [tests.md](tests.md) — tests automatisés et CI

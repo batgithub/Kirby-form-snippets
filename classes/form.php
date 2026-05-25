@@ -492,7 +492,11 @@ class RepliqForm
             return $config;
         }
 
-        $result = $kirby->apply('repliq.form.config', [$config, $formKey, $context]);
+        $result = $kirby->apply('repliq.form.config', [
+            'config' => $config,
+            'formKey' => $formKey,
+            'context' => $context,
+        ]);
 
         return is_array($result) ? $result : $config;
     }

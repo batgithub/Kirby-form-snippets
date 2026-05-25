@@ -7,3 +7,12 @@
 # Composer files
 /vendor
 /composer.lock
+
+# Kirby dev install (tests)
+/kirby
+/site/plugins/kirby-uniform
+/site/plugins/kirby-form
+/site/plugins/kirby-flash
+
+# PHPUnit
+/.phpunit.cache

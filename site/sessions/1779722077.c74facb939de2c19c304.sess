@@ -1,0 +1,2 @@
+16b6f87c07d56f6e54397e00778a9d8351ac96706eb64c3ac3a5ad0aaa5c63dd
+a:7:{s:9:"startTime";i:1779714877;s:10:"expiryTime";i:1779722077;s:8:"duration";i:7200;s:7:"timeout";i:1800;s:12:"lastActivity";i:1779714877;s:9:"renewable";b:1;s:4:"data";a:2:{s:6:"_flash";a:3:{s:9:"form.data";a:3:{s:4:"name";s:8:"Jane Doe";s:5:"email";s:12:"not-an-email";s:7:"message";s:7:"Bonjour";}s:11:"form.errors";a:1:{s:5:"email";a:1:{i:0;s:41:"Veuillez entrer un format d'email valide.";}}s:12:"form.success";b:0;}s:10:"kirby.csrf";s:64:"7fea121dd174a6127301bbf70c5c8bfbf48d4b95a6ce9c9d5cc6fa73713a3b05";}}

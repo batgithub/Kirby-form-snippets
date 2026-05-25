@@ -246,6 +246,3 @@ Le block expose `formKey`, `submitLabel` et `successMessage` dans le Panel.
 | **[docs/style.md](docs/style.md)** | Personnalisation visuelle (classes, CSS) |
 | **[docs/tech.md](docs/tech.md)** | Architecture, routes, CSRF, honeytime, cache, flux internes |
 
-## Wiki
-
-[Wiki du projet](https://github.com/batgithub/Kirby-form-snippets/wiki)

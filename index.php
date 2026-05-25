@@ -42,6 +42,17 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'enabled' => false,
             'title' => 'Le formulaire contient des erreurs',
         ],
+        'htmx' => [
+            'enabled' => false,
+            'swap' => 'outerHTML',
+            'target' => null,
+            'indicator' => null,
+            'disabledElt' => 'find button[type=submit]',
+            'loadScript' => true,
+            'script' => 'https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js',
+            'scriptIntegrity' => 'sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V',
+            'scriptCrossorigin' => 'anonymous',
+        ],
         'csrf' => [
             'route' => 'kirby-form-snippets/csrf-token',
             'field' => 'csrf_token',
@@ -99,7 +110,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
                 'pattern' => option('baptiste.kirby-form-snippets.submit.route') . '/(:any)',
                 'method' => 'POST',
                 'action' => function (string $key) {
-                    repliq\RepliqForm::handleSubmit($key);
+                    return repliq\RepliqForm::handleSubmit($key);
                 },
             ],
         ];
@@ -126,6 +137,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-csrf' => __DIR__ . '/snippets/fields/csrf.php',
         'form-csrf-refresh' => __DIR__ . '/snippets/form-csrf-refresh.php',
         'form-honeytime-refresh' => __DIR__ . '/snippets/form-honeytime-refresh.php',
+        'form-htmx-script' => __DIR__ . '/snippets/form-htmx-script.php',
         'form-field-errors' => __DIR__ . '/snippets/fields/field-errors.php',
         'form-line' => __DIR__ . '/snippets/fields/line.php',
         'form-info' => __DIR__ . '/snippets/fields/info.php',

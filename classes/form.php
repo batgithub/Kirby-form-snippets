@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace repliq;
 
+use Jevets\Kirby\Flash;
+use Jevets\Kirby\Form as BaseForm;
 use Kirby\Cms\Page;
 use Kirby\Cms\StructureObject;
+use Kirby\Http\Response;
 use Kirby\Toolkit\Str;
 use Uniform\Form;
 use Uniform\Guards\HoneytimeGuard;
 
 class RepliqForm
 {
+    private static bool $htmxScriptLoaded = false;
+
     /** @var list<string> */
     private const EMAIL_SKIP_INPUTS = [
         'honeypot',
@@ -71,7 +76,7 @@ class RepliqForm
         return url($route . '/' . $key);
     }
 
-    public static function handleSubmit(string $key): void
+    public static function handleSubmit(string $key): ?Response
     {
         $config = self::buildConfig($key, [], 'submit');
 
@@ -96,7 +101,222 @@ class RepliqForm
 
         unset($emailConfig['theme'], $emailConfig['themeFrom'], $emailConfig['templateData']);
 
+        if (self::isHtmxRequest()) {
+            $pipeline
+                ->withoutRedirect()
+                ->withoutFlashing()
+                ->emailAction($emailConfig)
+                ->done();
+
+            return self::respondHtmx($key, $pipeline, $config);
+        }
+
         $pipeline->emailAction($emailConfig)->done();
+
+        return null;
+    }
+
+    public static function isHtmxRequest(): bool
+    {
+        return kirby()->request()->header('HX-Request') === 'true';
+    }
+
+    public static function isHtmxScriptLoaded(): bool
+    {
+        return self::$htmxScriptLoaded;
+    }
+
+    public static function markHtmxScriptLoaded(): void
+    {
+        self::$htmxScriptLoaded = true;
+    }
+
+    /**
+     * @param bool|array<string, mixed>|null $snippetOverride
+     * @return array{
+     *     enabled: bool,
+     *     swap: string,
+     *     target: string,
+     *     indicator: string|null,
+     *     disabledElt: string|null,
+     *     loadScript: bool,
+     *     script: string,
+     *     scriptIntegrity: string|null,
+     *     scriptCrossorigin: string|null
+     * }
+     */
+    public static function resolveHtmxSetting(
+        string $formKey,
+        bool|array|null $snippetOverride = null
+    ): array {
+        $global = option('baptiste.kirby-form-snippets.htmx');
+        $global = is_array($global) ? $global : [];
+
+        if ($snippetOverride !== null) {
+            return self::normalizeHtmxSetting($snippetOverride, $formKey, $global);
+        }
+
+        $formConfig = self::getFormConfig($formKey);
+
+        if (isset($formConfig['htmx'])) {
+            return self::normalizeHtmxSetting($formConfig['htmx'], $formKey, $global);
+        }
+
+        return self::normalizeHtmxSetting($global, $formKey, $global);
+    }
+
+    /**
+     * @param array{
+     *     enabled: bool,
+     *     swap: string,
+     *     target: string,
+     *     indicator: string|null,
+     *     disabledElt: string|null
+     * } $setting
+     * @return array<string, string>
+     */
+    public static function htmxFormAttributes(array $setting, string $formAction): array
+    {
+        if (!$setting['enabled']) {
+            return [];
+        }
+
+        $attrs = [
+            'hx-post' => $formAction,
+            'hx-target' => $setting['target'],
+            'hx-swap' => $setting['swap'],
+        ];
+
+        if (is_string($setting['indicator'] ?? null) && $setting['indicator'] !== '') {
+            $attrs['hx-indicator'] = $setting['indicator'];
+        }
+
+        if (is_string($setting['disabledElt'] ?? null) && $setting['disabledElt'] !== '') {
+            $attrs['hx-disabled-elt'] = $setting['disabledElt'];
+        }
+
+        return $attrs;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function respondHtmx(string $key, Form $form, array $config): Response
+    {
+        if (!$form->success()) {
+            self::flashFormDataForRender($form);
+        }
+
+        $mode = self::formMode($config);
+        $formConfig = new self($config['fields'], $mode);
+
+        $html = snippet('form-page', [
+            'formKey' => $key,
+            'formData' => [
+                'formConfig' => $formConfig,
+                'form' => $form,
+                'formKey' => $key,
+                'formAction' => self::submitUrl($key),
+                'mode' => $mode,
+                'honeytime' => self::resolveHoneytimeGuardOptions($config),
+            ],
+            'htmx' => [
+                'enabled' => true,
+                'loadScript' => false,
+            ],
+        ], true);
+
+        return Response::html((string) $html);
+    }
+
+    private static function flashFormDataForRender(Form $form): void
+    {
+        Flash::getInstance()->set(
+            BaseForm::FLASH_KEY_DATA,
+            $form->data('', '', false)
+        );
+    }
+
+    /**
+     * @param bool|array<string, mixed>|mixed $setting
+     * @param array<string, mixed> $global
+     * @return array{
+     *     enabled: bool,
+     *     swap: string,
+     *     target: string,
+     *     indicator: string|null,
+     *     disabledElt: string|null,
+     *     loadScript: bool,
+     *     script: string,
+     *     scriptIntegrity: string|null,
+     *     scriptCrossorigin: string|null
+     * }
+     */
+    private static function normalizeHtmxSetting(
+        mixed $setting,
+        string $formKey,
+        array $global
+    ): array {
+        $defaults = [
+            'enabled' => false,
+            'swap' => 'outerHTML',
+            'target' => null,
+            'indicator' => null,
+            'disabledElt' => 'find button[type=submit]',
+            'loadScript' => true,
+            'script' => 'https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js',
+            'scriptIntegrity' => null,
+            'scriptCrossorigin' => 'anonymous',
+        ];
+
+        $merged = array_replace($defaults, $global);
+
+        if (is_bool($setting)) {
+            $merged['enabled'] = $setting;
+        } elseif (is_array($setting)) {
+            $merged = array_replace($merged, $setting);
+            $merged['enabled'] = (bool) ($setting['enabled'] ?? $merged['enabled'] ?? false);
+        } else {
+            $merged['enabled'] = (bool) ($merged['enabled'] ?? false);
+        }
+
+        $containerId = 'repliq-form-' . $formKey;
+        $target = $merged['target'] ?? null;
+
+        if (!is_string($target) || $target === '') {
+            $target = '#' . $containerId;
+        } elseif (!str_starts_with($target, '#') && !str_starts_with($target, '.')) {
+            $target = '#' . $target;
+        }
+
+        return [
+            'enabled' => (bool) $merged['enabled'],
+            'swap' => is_string($merged['swap'] ?? null) && $merged['swap'] !== ''
+                ? $merged['swap']
+                : 'outerHTML',
+            'target' => $target,
+            'indicator' => is_string($merged['indicator'] ?? null) && $merged['indicator'] !== ''
+                ? $merged['indicator']
+                : null,
+            'disabledElt' => is_string($merged['disabledElt'] ?? null) && $merged['disabledElt'] !== ''
+                ? $merged['disabledElt']
+                : null,
+            'loadScript' => (bool) ($merged['loadScript'] ?? true),
+            'script' => is_string($merged['script'] ?? null) && $merged['script'] !== ''
+                ? $merged['script']
+                : $defaults['script'],
+            'scriptIntegrity' => is_string($merged['scriptIntegrity'] ?? null) && $merged['scriptIntegrity'] !== ''
+                ? $merged['scriptIntegrity']
+                : null,
+            'scriptCrossorigin' => is_string($merged['scriptCrossorigin'] ?? null) && $merged['scriptCrossorigin'] !== ''
+                ? $merged['scriptCrossorigin']
+                : null,
+        ];
+    }
+
+    public static function htmxContainerId(string $formKey): string
+    {
+        return 'repliq-form-' . $formKey;
     }
 
     /**

@@ -18,6 +18,7 @@ final class PluginIntegrationTest extends TestCase
         $snippets = $plugin->extends()['snippets'] ?? [];
         $this->assertArrayHasKey('form-page', $snippets);
         $this->assertArrayHasKey('form-errors-summary', $snippets);
+        $this->assertArrayHasKey('form-htmx-script', $snippets);
     }
 
     public function testCsrfRouteReturnsToken(): void

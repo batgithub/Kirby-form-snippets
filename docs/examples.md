@@ -13,6 +13,8 @@ Scénarios pas à pas pour les cas courants. La structure des champs se déclare
 - [Options depuis un controller](#options-depuis-un-controller)
 - [Plusieurs formulaires sur une page](#plusieurs-formulaires-sur-une-page)
 - [Markup personnalisé](#markup-personnalisé)
+- [HTMX — soumission AJAX](#htmx--soumission-ajax)
+- [HTMX — script intégré à la main](#htmx--script-intégré-à-la-main)
 - [Block Panel](#block-panel)
 - [Récapitulatif des flux](#récapitulatif-des-flux)
 
@@ -135,7 +137,7 @@ Le visiteur choisit un **objet** dans un select. La liste est gérée dans le Pa
 
 ### Blueprint (`site/blueprints/site.yml`)
 
-Copiez ou adaptez [`blueprints/examples/site-form-settings.yml`](../blueprints/examples/site-form-settings.yml) :
+Copiez ou adaptez `[blueprints/examples/site-form-settings.yml](../blueprints/examples/site-form-settings.yml)` :
 
 ```yaml
 contactSubjects:
@@ -154,10 +156,12 @@ contactSubjects:
 
 ### Panel (exemple)
 
-| Libellé affiché | Valeur soumise |
-|-----------------|----------------|
-| Demande de devis | devis |
-| Support | support |
+
+| Libellé affiché  | Valeur soumise |
+| ---------------- | -------------- |
+| Demande de devis | devis          |
+| Support          | support        |
+
 
 ### Config
 
@@ -221,7 +225,7 @@ Le visiteur sélectionne un objet ; l'email part vers un ou plusieurs destinatai
 
 ### B — Hook + helper
 
-**`site/helpers/forms.php` :**
+`**site/helpers/forms.php` :**
 
 ```php
 function contactEmailTo(string $subject): string|array
@@ -234,7 +238,7 @@ function contactEmailTo(string $subject): string|array
 }
 ```
 
-**`site/config/config.php` :**
+`**site/config/config.php` :**
 
 ```php
 'hooks' => [
@@ -296,12 +300,14 @@ Le plugin affiche le formulaire en GET ; **vous** filtrez la collection dans le 
 
 ### Fichiers concernés
 
-| Fichier | Rôle |
-|---------|------|
-| `site/config/config.php` | `'mode' => 'filter'` + champs |
-| `site/templates/blog.php` | Snippet + `get()` + `filterBy()` |
+
+| Fichier                             | Rôle                                          |
+| ----------------------------------- | --------------------------------------------- |
+| `site/config/config.php`            | `'mode' => 'filter'` + champs                 |
+| `site/templates/blog.php`           | Snippet + `get()` + `filterBy()`              |
 | `site/blueprints/pages/article.yml` | (optionnel) champ `category` sur les articles |
-| `site/pages/blog/categories/` | (optionnel) pages catégories |
+| `site/pages/blog/categories/`       | (optionnel) pages catégories                  |
+
 
 ### Options statiques
 
@@ -345,7 +351,7 @@ blog/categories/design
 
 ### Tags via callable
 
-**`site/helpers/forms.php` :**
+`**site/helpers/forms.php` :**
 
 ```php
 use Kirby\Cms\Page;
@@ -447,12 +453,14 @@ Quand les options dépendent du **contexte de la page** (controller disponible �
 
 ### Fichiers
 
-| Fichier | Rôle |
-|---------|------|
-| `site/helpers/forms.php` | Logique partagée |
-| `site/controllers/blog.php` | Overrides à l'affichage |
-| `site/templates/blog.php` | Passe `$formOverrides` au snippet |
-| `site/config/config.php` | Hook pour la soumission POST (si email dynamique) |
+
+| Fichier                     | Rôle                                              |
+| --------------------------- | ------------------------------------------------- |
+| `site/helpers/forms.php`    | Logique partagée                                  |
+| `site/controllers/blog.php` | Overrides à l'affichage                           |
+| `site/templates/blog.php`   | Passe `$formOverrides` au snippet                 |
+| `site/config/config.php`    | Hook pour la soumission POST (si email dynamique) |
+
 
 ### Helper
 
@@ -578,6 +586,177 @@ $formData = repliq_form('blog-filter', $formOverrides);
 
 ---
 
+## HTMX — soumission AJAX
+
+Soumission sans rechargement de page via [htmx](https://htmx.org/). Le plugin injecte `hx-post`, `hx-target` et `hx-swap` sur le `<form>`, et la route `submit` renvoie un fragment HTML quand l'en-tête `HX-Request: true` est présent.
+
+**Fichiers :** `site/config/config.php`, template.
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'htmx' => [
+        'enabled' => true,
+    ],
+    'forms' => [
+        'contact' => [
+            'htmx' => true,
+            'fields' => [
+                // … même structure que le contact simple
+            ],
+            'email' => [
+                'to' => 'contact@example.com',
+                'from' => 'noreply@example.com',
+                'subject' => 'Nouveau message',
+            ],
+        ],
+    ],
+],
+```
+
+```php
+<?php snippet('form-page', ['formKey' => 'contact']) ?>
+```
+
+Par défaut, le script htmx.org est chargé une fois par page depuis le CDN (`form-htmx-script`). Les routes CSRF et Honeytime doivent rester hors cache — voir [tech.md](tech.md#cache).
+
+---
+
+## HTMX — script intégré à la main
+
+Pour charger HTMX depuis votre layout (Vite, assets Kirby, etc.) plutôt que depuis le CDN du plugin.
+
+**Fichiers :**
+
+
+| Fichier | Rôle |
+| ------- | ---- |
+| `site/config/config.php` | `loadScript => false` |
+| `site/snippets/header.php` (ou layout) | Balise `<script>` htmx |
+| `assets/js/repliq-form-htmx.js` (ou snippet site) | Rafraîchissement CSRF / Honeytime après swap |
+
+
+### Config
+
+Désactiver le chargement automatique ; le plugin garde les attributs `hx-*` sur le formulaire :
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'htmx' => [
+        'enabled' => true,
+        'loadScript' => false,
+    ],
+    'forms' => [
+        'contact' => [
+            'htmx' => true,
+            'fields' => [
+                // …
+            ],
+        ],
+    ],
+],
+```
+
+Équivalent par snippet, sans toucher la config globale :
+
+```php
+<?php snippet('form-page', [
+    'formKey' => 'contact',
+    'htmx' => [
+        'enabled' => true,
+        'loadScript' => false,
+    ],
+]) ?>
+```
+
+### Layout — lib HTMX
+
+Chargez la lib **avant** la fin du `<body>` (version compatible : htmx.org 2.x, voir `index.php` du plugin pour la version pinée) :
+
+```php
+<!-- site/snippets/header.php ou footer.php -->
+<script src="<?= url('assets/js/htmx.min.js') ?>" defer></script>
+<script src="<?= url('assets/js/repliq-form-htmx.js') ?>" defer></script>
+```
+
+### JS — rafraîchissement CSRF / Honeytime
+
+En mode HTMX, les snippets `form-csrf-refresh` et `form-honeytime-refresh` ne sont pas rendus. Après chaque swap, les tokens hidden doivent être régénérés (même logique que `snippets/form-htmx-script.php` du plugin).
+
+Exemple minimal dans `assets/js/repliq-form-htmx.js` :
+
+```javascript
+(function () {
+    var config = {
+        csrfField: 'csrf_token',
+        honeytimeField: 'uniform-honeytime',
+        tokenUrl: '/kirby-form-snippets/csrf-token',
+        honeytimeUrl: '/kirby-form-snippets/honeytime-token',
+    };
+
+    function refreshContainer(container) {
+        if (!container || !container.hasAttribute('data-repliq-form')) {
+            return;
+        }
+
+        fetch(config.tokenUrl)
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) {
+                if (!data || !data.token) return;
+                container.querySelectorAll('[name="' + config.csrfField + '"]').forEach(function (field) {
+                    field.value = data.token;
+                });
+            });
+
+        if (!container.querySelector('[name="' + config.honeytimeField + '"]')) {
+            return;
+        }
+
+        fetch(config.honeytimeUrl)
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) {
+                if (!data || !data.value) return;
+                container.querySelectorAll('[name="' + config.honeytimeField + '"]').forEach(function (field) {
+                    field.value = data.value;
+                });
+            });
+    }
+
+    function refreshAll() {
+        document.querySelectorAll('[data-repliq-form]').forEach(refreshContainer);
+    }
+
+    document.addEventListener('DOMContentLoaded', refreshAll);
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        var target = event.detail && event.detail.target;
+        if (!target) return;
+        if (target.hasAttribute('data-repliq-form')) {
+            refreshContainer(target);
+            return;
+        }
+        target.querySelectorAll('[data-repliq-form]').forEach(refreshContainer);
+    });
+})();
+```
+
+Adaptez les URLs si vous avez personnalisé `csrf.route` ou `honeytime.route` dans la config du plugin.
+
+### Variante — script local, chargement auto
+
+Si vous voulez seulement **héberger le fichier** sans gérer le JS de refresh vous-même, laissez `loadScript` à `true` et pointez `script` vers votre asset :
+
+```php
+'htmx' => [
+    'enabled' => true,
+    'loadScript' => true,
+    'script' => url('assets/js/htmx.min.js'),
+    'scriptIntegrity' => null,
+],
+```
+
+Le plugin inclut alors `form-htmx-script` (lib + refresh CSRF/Honeytime) depuis votre URL.
+
+---
+
 ## Block Panel
 
 Autorisez le block dans votre blueprint de page :
@@ -602,21 +781,26 @@ La **composition des champs** reste dans `config.php` — le block ne permet pas
 
 ## Récapitulatif des flux
 
-| Moment | Mécanisme | Fichier typique |
-|--------|-----------|-----------------|
-| Affichage formulaire POST | `snippet('form-page')` | template / block |
-| Soumission POST | Route plugin + hook | `config.php` |
-| Affichage filtre | `snippet('form-filter')` + overrides controller | template + controller |
-| Clic « Filtrer » | `get('champ')` dans le template | template |
-| Options Panel | `optionsFrom` dans config | `config.php` + blueprint Site/page |
-| Email dynamique | `toFrom` callable ou hook | `config.php` |
-| Anti-spam Honeytime | `honeytime.enabled` + `uniform.honeytime.key` + route `honeytime-token` | `config.php` |
-| Cache | `cache.ignore` sur les routes plugin | `config.php` |
 
-Ordre de fusion : **`config.php`** → hook → overrides controller. Le Panel est lu via `optionsFrom` / `toFrom`, pas en remplacement de la config.
+| Moment                    | Mécanisme                                                               | Fichier typique                    |
+| ------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| Affichage formulaire POST | `snippet('form-page')`                                                  | template / block                   |
+| Soumission POST           | Route plugin + hook                                                     | `config.php`                       |
+| Affichage filtre          | `snippet('form-filter')` + overrides controller                         | template + controller              |
+| Clic « Filtrer »          | `get('champ')` dans le template                                         | template                           |
+| Options Panel             | `optionsFrom` dans config                                               | `config.php` + blueprint Site/page |
+| Email dynamique           | `toFrom` callable ou hook                                               | `config.php`                       |
+| Anti-spam Honeytime       | `honeytime.enabled` + `uniform.honeytime.key` + route `honeytime-token` | `config.php`                       |
+| Soumission AJAX (HTMX)    | `htmx.enabled` + attributs `hx-*` sur le form                           | `config.php` + template            |
+| Script HTMX manuel        | `htmx.loadScript => false` + lib + JS refresh dans le layout            | layout + `assets/js/`              |
+| Cache                     | `cache.ignore` sur les routes plugin                                    | `config.php`                       |
+
+
+Ordre de fusion : `**config.php`** → hook → overrides controller. Le Panel est lu via `optionsFrom` / `toFrom`, pas en remplacement de la config.
 
 ## Voir aussi
 
 - [README.md](../README.md) — installation
 - [inputs.md](inputs.md) — référence des champs et paramètres
 - [tech.md](tech.md) — architecture et routes
+

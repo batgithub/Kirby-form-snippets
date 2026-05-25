@@ -7,12 +7,16 @@ if (!isset($form, $formConfig) || !$formConfig instanceof RepliqForm) {
 }
 
 $config = $formConfig;
+$htmxEnabled = (bool) ($htmxEnabled ?? false);
 
 if (($mode ?? 'submit') !== 'filter') {
     snippet('form-csrf');
-    snippet('form-csrf-refresh', [
-        'formSelector' => $formSelector ?? null,
-    ]);
+
+    if (!$htmxEnabled) {
+        snippet('form-csrf-refresh', [
+            'formSelector' => $formSelector ?? null,
+        ]);
+    }
 
     $honeytimeOptions = is_array($honeytime ?? null) ? $honeytime : null;
 
@@ -30,10 +34,13 @@ if (($mode ?? 'submit') !== 'filter') {
 
     if (is_array($honeytimeOptions)) {
         snippet('form-honeytime', $honeytimeOptions);
-        snippet('form-honeytime-refresh', [
-            'formSelector' => $formSelector ?? null,
-            'field' => $honeytimeOptions['field'] ?? null,
-        ]);
+
+        if (!$htmxEnabled) {
+            snippet('form-honeytime-refresh', [
+                'formSelector' => $formSelector ?? null,
+                'field' => $honeytimeOptions['field'] ?? null,
+            ]);
+        }
     }
 }
 

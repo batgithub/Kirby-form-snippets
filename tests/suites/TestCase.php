@@ -35,6 +35,12 @@ abstract class TestCase extends PHPUnitTestCase
         $_GET = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
+        foreach (array_keys($_SERVER) as $key) {
+            if (str_starts_with($key, 'HTTP_')) {
+                unset($_SERVER[$key]);
+            }
+        }
+
         Email::$debug = true;
         Email::$emails = [];
 
@@ -44,17 +50,33 @@ abstract class TestCase extends PHPUnitTestCase
         $flash->set(Form::FLASH_KEY_SUCCESS, null);
 
         $this->simulateRequest('GET');
+        $this->resetHtmxScriptState();
+    }
+
+    protected function resetHtmxScriptState(): void
+    {
+        $reflection = new \ReflectionClass(RepliqForm::class);
+        $prop = $reflection->getProperty('htmxScriptLoaded');
+        $prop->setAccessible(true);
+        $prop->setValue(null, false);
     }
 
     /**
      * @param array<string, mixed> $body
+     * @param array<string, string> $headers
      */
     protected function simulateRequest(
         string $method = 'GET',
         array $body = [],
-        string $path = '/'
+        string $path = '/',
+        array $headers = []
     ): void {
         $_SERVER['REQUEST_METHOD'] = $method;
+
+        foreach ($headers as $key => $value) {
+            $serverKey = 'HTTP_' . strtoupper(str_replace('-', '_', $key));
+            $_SERVER[$serverKey] = $value;
+        }
 
         $kirby = kirby();
         $reflection = new \ReflectionClass($kirby);

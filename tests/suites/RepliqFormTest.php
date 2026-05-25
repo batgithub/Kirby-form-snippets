@@ -372,4 +372,48 @@ final class RepliqFormTest extends TestCase
         $this->assertStringContainsString('href="#email"', $html);
         $this->assertStringContainsString('Email', $html);
     }
+
+    public function testResolveHtmxSettingIsDisabledByDefault(): void
+    {
+        $setting = RepliqForm::resolveHtmxSetting('contact');
+
+        $this->assertFalse($setting['enabled']);
+        $this->assertSame('#repliq-form-contact', $setting['target']);
+        $this->assertSame('outerHTML', $setting['swap']);
+    }
+
+    public function testResolveHtmxSettingHonorsSnippetOverride(): void
+    {
+        $setting = RepliqForm::resolveHtmxSetting('contact', true);
+
+        $this->assertTrue($setting['enabled']);
+    }
+
+    public function testHtmxFormAttributesReturnsEmptyWhenDisabled(): void
+    {
+        $attrs = RepliqForm::htmxFormAttributes(
+            RepliqForm::resolveHtmxSetting('contact'),
+            'http://localhost/kirby-form-snippets/submit/contact'
+        );
+
+        $this->assertSame([], $attrs);
+    }
+
+    public function testHtmxFormAttributesReturnsHxAttributesWhenEnabled(): void
+    {
+        $setting = RepliqForm::resolveHtmxSetting('contact', true);
+        $action = 'http://localhost/kirby-form-snippets/submit/contact';
+        $attrs = RepliqForm::htmxFormAttributes($setting, $action);
+
+        $this->assertSame($action, $attrs['hx-post']);
+        $this->assertSame('#repliq-form-contact', $attrs['hx-target']);
+        $this->assertSame('outerHTML', $attrs['hx-swap']);
+    }
+
+    public function testIsHtmxRequestDetectsHxRequestHeader(): void
+    {
+        $this->simulateRequest('GET', [], '/', ['HX-Request' => 'true']);
+
+        $this->assertTrue(RepliqForm::isHtmxRequest());
+    }
 }

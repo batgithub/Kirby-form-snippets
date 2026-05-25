@@ -136,10 +136,66 @@ Règles générées par `RepliqForm::getRules()` :
 | `submitLabel` | `Envoyer` |
 | `successMessage` | message de remerciement |
 | `errorsSummary` | — (bool ou `['title' => '…']`) ; sinon option globale / par formulaire |
+| `htmx` | — (bool ou tableau) ; sinon option globale / par formulaire |
 
 Succès Uniform → message ; sinon → `<form method="post" action="{submitUrl}">`. Si le récap d'erreurs est activé, `form-errors-summary` est rendu en tête du `<form>` (en plus des `notif.error` par champ).
 
+Le contenu est enveloppé dans `<div id="repliq-form-{formKey}" class="repliq-form-container">` pour permettre le remplacement HTMX.
+
 Option globale : `baptiste.kirby-form-snippets.errorsSummary` (`enabled`, `title`). Par formulaire : `errorsSummary => true` dans `forms.{formKey}`.
+
+### HTMX (optionnel)
+
+Soumission AJAX sans JavaScript custom via [htmx](https://htmx.org/). Désactivé par défaut.
+
+**Activation**
+
+| Niveau | Exemple |
+|--------|---------|
+| Global | `'htmx' => ['enabled' => true]` dans `baptiste.kirby-form-snippets` |
+| Par formulaire | `'htmx' => true` dans `forms.{formKey}` |
+| Par snippet | `snippet('form-page', ['formKey' => 'contact', 'htmx' => true])` |
+
+**Comportement**
+
+- Attributs `hx-post`, `hx-target`, `hx-swap` injectés sur le `<form>` quand HTMX est activé.
+- La route `submit` détecte l'en-tête `HX-Request: true` et renvoie un fragment HTML (sans redirection) via `withoutRedirect()` / `withoutFlashing()` Uniform.
+- Le script [htmx.org](https://htmx.org/) est chargé une fois par page (`form-htmx-script`) ; le rafraîchissement CSRF / Honeytime est géré via `htmx:afterSwap` (remplace les snippets `form-csrf-refresh` / `form-honeytime-refresh` en mode HTMX).
+- Dégradation gracieuse : `action` + `method="post"` restent présents si JavaScript est désactivé.
+
+**Options** (`baptiste.kirby-form-snippets.htmx`)
+
+| Clé | Défaut | Rôle |
+|-----|--------|------|
+| `enabled` | `false` | Active HTMX sur tous les forms (sauf `htmx => false`) |
+| `swap` | `outerHTML` | Valeur de `hx-swap` |
+| `target` | `#repliq-form-{formKey}` | Sélecteur `hx-target` |
+| `indicator` | `null` | Sélecteur `hx-indicator` (spinner, etc.) |
+| `disabledElt` | `find button[type=submit]` | Élément désactivé pendant la requête |
+| `loadScript` | `true` | Charge htmx.org depuis le CDN |
+| `script` | CDN jsdelivr 2.0.10 | URL du script |
+| `scriptIntegrity` | hash SRI | Attribut `integrity` |
+| `scriptCrossorigin` | `anonymous` | Attribut `crossorigin` |
+
+**Exemple**
+
+```php
+// site/config/config.php
+'baptiste.kirby-form-snippets' => [
+    'htmx' => ['enabled' => true],
+    'forms' => [
+        'contact' => [
+            'htmx' => true,
+            // ...
+        ],
+    ],
+],
+```
+
+```php
+// template
+snippet('form-page', ['formKey' => 'contact', 'htmx' => true]);
+```
 
 ### `form-filter`
 

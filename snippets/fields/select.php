@@ -1,53 +1,47 @@
-<?php 
+<?php
+    use repliq\RepliqForm;
+
     $isRequired = isset($required) ? $required : '';
     $multiselect = isset($multiselect) ? true : false;
     $name = $id;
     $error = $form->error($id);
-    $value = $form->old($id);
-    $options = $options;
+    $oldValue = $form->old($id);
+    $oldValues = (array) $oldValue;
 ?>
 
 <div class="field <?= empty($error) ? '' : 'error' ?>">
-    <?php  snippet('form-label', [
-            'label_text' => $label,
-            'id' => $id,
-            'required' => $isRequired
+    <?php snippet('form-label', [
+        'label_text' => $label,
+        'id' => $id,
+        'required' => $isRequired,
     ]); ?>
 
-    <?php 
-        if(isset($info)): 
-            snippet('form-info', ['text' => $info]);
-        endif
-    ?>
+    <?php if (isset($info)): ?>
+        <?php snippet('form-info', ['text' => $info]); ?>
+    <?php endif ?>
 
-
-    <select 
+    <select
         <?= $multiselect ? 'multiple' : '' ?>
-        name="<?= $id ?><?= $multiselect ? '[]' : '' ?>" 
-        id="<?= $id ?>"
-        <?= ($isRequired) ? 'required' : '' ?>
+        name="<?= attr($id . ($multiselect ? '[]' : '')) ?>"
+        id="<?= attr($id) ?>"
+        aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
+        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= $isRequired ? 'required' : '' ?>
     >
 
-        <?php foreach(  $options as  $option): ?>
-            <option 
-                <?php if(isset($option['value'])):  ?>
-                    value="<?= $option['value'] ?>"
-                    <?= ($option['value']==$form->old($id) ||  isset($option['selected'])) ? 'selected': '' ?>       
+        <?php foreach ($options as $option): ?>
+            <?php $optionValue = RepliqForm::optionValue($option); ?>
+            <option
+                value="<?= attr($optionValue) ?>"
+                <?php if ($multiselect): ?>
+                    <?= in_array($optionValue, $oldValues, true) || isset($option['selected']) ? 'selected' : '' ?>
                 <?php else: ?>
-                    value="<?= urlencode($option['label']) ?>"
-                    <?= (urlencode($option['label']) == $form->old($id) ||  isset($option['selected'])) ? 'selected': '' ?>       
+                    <?= ($optionValue === $oldValue || isset($option['selected'])) ? 'selected' : '' ?>
                 <?php endif; ?>
-                
-            ><?= $option['label'] ?>
-            </option>
+            ><?= html($option['label']) ?></option>
         <?php endforeach ?>
-    
+
     </select>
 
-    <?php if(empty($error) == false)  {
-        snippet('form-notif', [
-            'notif_text' => implode('<br>', $error),
-            'class' => 'error',
-        ]);
-    }?>
+    <?php snippet('form-field-errors', ['id' => $id, 'error' => $error]); ?>
 </div>

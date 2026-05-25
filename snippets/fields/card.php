@@ -1,9 +1,9 @@
-<?php 
+<?php
     $class = isset($class) ? $class : '';
 ?>
 
-<div class="form-card <?= $class ?>">
+<div class="form-card <?= attr($class) ?>">
     <p>
-        <?= $text ?>
+        <?= html($text) ?>
     </p>
-</div>  
+</div>

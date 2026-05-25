@@ -1,24 +1,32 @@
-<?php 
+<?php
     $isRequired = isset($required) ? $required : '';
+    $inGroup = isset($inGroup) ? $inGroup : false;
     $id = isset($id) ? $id : $name;
-    $error = $form->error($id);
+    $error = $inGroup ? [] : $form->error($id);
     $checked = isset($checked) ? $checked : false;
+    $isChecked = $checked || ($form->old($name) !== null && (string) $form->old($name) === (string) $value);
 ?>
 
 <div class="field radio <?= empty($error) ? '' : 'error' ?>">
     <div class="wrap-input">
-        <input 
-        class="cursor-pointer"
-        type="radio" 
-        id="<?= $id ?>" 
-        name="<?= $name ?>" 
-        value="<?= $value ?>"
-        <?= ($value==$form->old($id)||  $checked) ? 'checked': '' ?>        
+        <input
+            class="cursor-pointer"
+            type="radio"
+            id="<?= attr($id) ?>"
+            name="<?= attr($name) ?>"
+            value="<?= attr($value) ?>"
+            <?= $inGroup ? '' : 'aria-invalid="' . (empty($error) ? 'false' : 'true') . '"' ?>
+            <?= (!$inGroup && !empty($error)) ? 'aria-describedby="' . attr($id . '-error') . '"' : '' ?>
+            <?= $isChecked ? 'checked' : '' ?>
+            <?= $isRequired ? 'required' : '' ?>
         >
-        <label for="<?= $id ?>"> 
-            <p class="cursor-pointer"><?= $label ?></p>
+        <label for="<?= attr($id) ?>">
+            <p class="cursor-pointer"><?= html($label) ?></p>
         </label>
     </div>
-    
-</div>
 
+    <?php if (!$inGroup): ?>
+        <?php snippet('form-field-errors', ['id' => $id, 'error' => $error]); ?>
+    <?php endif ?>
+
+</div>

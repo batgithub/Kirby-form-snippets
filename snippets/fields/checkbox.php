@@ -1,37 +1,37 @@
-<?php 
+<?php
+    use repliq\RepliqForm;
+
     $isRequired = isset($required) ? $required : '';
+    $inGroup = isset($inGroup) ? $inGroup : false;
     $name = isset($name) ? $name : $id;
-    $error = $form->error($id);
+    $error = $inGroup ? [] : $form->error($id);
     $checked = isset($checked) ? $checked : false;
+    $fieldValue = isset($value) ? (string) $value : RepliqForm::optionValue(['label' => $label]);
+    $oldValue = $form->old($id);
+    $isChecked = $checked || ($oldValue !== null && (string) $oldValue === $fieldValue);
 ?>
 
 <div class="field checkbox <?= empty($error) ? '' : 'error' ?>">
     <div class="wrap-input">
-        <input 
-                class="cursor-pointer"
-                type="checkbox" 
-                id="<?= $id ?>" 
-                name="<?= $name ?>" 
-                <?php if(isset($value)):  ?>
-                    value="<?= $value ?>"
-                    <?= ($value==$form->old($id) ||  $checked) ? 'checked': '' ?>       
-                <?php else: ?>
-                    value="<?= urlencode($label) ?>"
-                    <?= (urlencode($label) == $form->old($id) ||  $checked) ? 'checked': '' ?>       
-                <?php endif; ?>
+        <input
+            class="cursor-pointer"
+            type="checkbox"
+            id="<?= attr($id) ?>"
+            name="<?= attr($name) ?>"
+            value="<?= attr($fieldValue) ?>"
+            <?= $inGroup ? '' : 'aria-invalid="' . (empty($error) ? 'false' : 'true') . '"' ?>
+            <?= (!$inGroup && !empty($error)) ? 'aria-describedby="' . attr($id . '-error') . '"' : '' ?>
+            <?= $isChecked ? 'checked' : '' ?>
+            <?= $isRequired ? 'required' : '' ?>
         >
-        <label for="<?= $id ?>"> 
-            <p class="cursor-pointer"><?= $label ?></p>
+        <label for="<?= attr($id) ?>">
+            <p class="cursor-pointer"><?= html($label) ?></p>
         </label>
 
-        
-        <?php if(empty($error) == false)  {
-            snippet('form-notif', [
-                'notif_text' => implode('<br>', $error),
-                'class' => 'error',
-            ]);
-        }?>
+        <?php if (!$inGroup): ?>
+            <?php snippet('form-field-errors', ['id' => $id, 'error' => $error]); ?>
+        <?php endif ?>
 
     </div>
-    
+
 </div>

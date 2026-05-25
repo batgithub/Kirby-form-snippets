@@ -1,37 +1,41 @@
-<?php 
+<?php
     $isRequired = isset($required) ? $required : '';
     $error = $form->error($id);
+    $inputType = isset($type) ? $type : 'text';
+
+    if ($inputType === 'phone') {
+        $inputType = 'tel';
+    }
+
+    $placeholderText = isset($placeholder)
+        ? $placeholder
+        : option('baptiste.kirby-form-snippets.placeholder');
 ?>
 
 <div class="field <?= empty($error) ? '' : 'error' ?>">
-    <?php  snippet('form-label', [
-            'label_text' => $label,
-            'id' => $id,
-            'required' => $isRequired
+    <?php snippet('form-label', [
+        'label_text' => $label,
+        'id' => $id,
+        'required' => $isRequired,
     ]); ?>
 
-    <?php 
-        if(isset($info)): 
-            snippet('form-info', ['text' => $info]);
-        endif
-    ?>
+    <?php if (isset($info)): ?>
+        <?php snippet('form-info', ['text' => $info]); ?>
+    <?php endif ?>
 
-    <input 
-        type="<?= isset($type) ? $type:'text' ?>" 
-        id="<?= $id ?>" 
-        name="<?= $id ?>" 
-        <?= isset($placeholder) ? 'placeholder="'.$placeholder.'"' : 'placeholder= "Votre réponse"' ?>
-        <?= isset($pattern) ? 'pattern='.$pattern : '' ?>
-        <?= isset($minlength) ? 'minlength='.$minlength : '' ?>
-        <?= isset($maxlength) ? 'maxlength='.$maxlength : '' ?>
-        <?= ($form->old($id))  ? 'value='.$form->old($id) : '' ?>
-        <?= ($isRequired) ? 'required' : '' ?>
+    <input
+        type="<?= attr($inputType) ?>"
+        id="<?= attr($id) ?>"
+        name="<?= attr($id) ?>"
+        placeholder="<?= attr($placeholderText) ?>"
+        <?= isset($pattern) ? 'pattern="' . attr($pattern) . '"' : '' ?>
+        <?= isset($minlength) ? 'minlength="' . attr($minlength) . '"' : '' ?>
+        <?= isset($maxlength) ? 'maxlength="' . attr($maxlength) . '"' : '' ?>
+        value="<?= attr($form->old($id)) ?>"
+        aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
+        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+        <?= $isRequired ? 'required' : '' ?>
     >
 
-    <?php if(empty($error) == false)  {
-        snippet('form-notif', [
-            'notif_text' => implode('<br>', $error),
-            'class' => 'error',
-        ]);
-    }?>
+    <?php snippet('form-field-errors', ['id' => $id, 'error' => $error]); ?>
 </div>

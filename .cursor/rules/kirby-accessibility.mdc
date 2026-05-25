@@ -1,0 +1,52 @@
+---
+description: Accessibilité WCAG 2.1 AA pour snippets et templates Kirby
+globs: snippets/**/*.php,templates/**/*.php
+alwaysApply: false
+---
+
+# Accessibilité (formulaires Kirby)
+
+Objectif : WCAG 2.1 niveau AA minimum.
+
+## Labels et associations
+
+- Chaque champ interactif a un `<label for="id">` dont l'`id` correspond à l'input
+- Ne pas utiliser le `placeholder` comme seul label
+- Champs requis : attribut `required` + indicateur visuel (`<abbr title="requis">*</abbr>`)
+
+```php
+// ✅ GOOD
+snippet('form-label', ['label_text' => $label, 'id' => $id, 'required' => $isRequired]);
+<input id="<?= attr($id) ?>" name="<?= attr($id) ?>" <?= $isRequired ? 'required' : '' ?>>
+```
+
+## Groupes de champs
+
+- Checkbox/radio multiples : `<fieldset>` + `<legend>` (voir `checkbox-group.php`, `radio-group.php`)
+- Erreurs de groupe annoncées après le `</fieldset>`
+
+## Messages d'erreur
+
+- Lier l'erreur au champ via `aria-describedby` et `aria-invalid="true"` en cas d'erreur
+- Conteneur d'erreur avec `role="alert"` ou `aria-live="polite"` pour les annonces dynamiques
+- Contraste texte/fond ≥ 4.5:1
+
+```php
+// ✅ GOOD
+<input
+    id="<?= attr($id) ?>"
+    aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
+    <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+>
+<?php if (!empty($error)): ?>
+    <span id="<?= attr($id . '-error') ?>" class="notif error" role="alert">
+        <?= html(implode(' ', $error)) ?>
+    </span>
+<?php endif ?>
+```
+
+## Honeypot et éléments décoratifs
+
+- Champs honeypot : `aria-hidden="true"` sur le conteneur, jamais focusables par les lecteurs d'écran
+- Icônes seules : `aria-label` ou texte visible adjacent
+- Navigation clavier : tous les contrôles atteignables et utilisables au clavier

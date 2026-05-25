@@ -1,30 +1,32 @@
-<?php 
+<?php
+    use repliq\RepliqForm;
+
     $isRequired = isset($required) ? $required : '';
     $name = $id;
     $error = $form->error($id);
-    $value = $form->old($id);
-    $options = $options;
+    $oldValue = $form->old($id);
 ?>
 
 <div class="field-group <?= empty($error) ? '' : 'error' ?>">
-    <fieldset>
-        <legend><?= $label ?></legend>
-        <?php foreach(  $options as $index => $option): ?>
+    <fieldset
+        aria-invalid="<?= empty($error) ? 'false' : 'true' ?>"
+        <?= empty($error) ? '' : 'aria-describedby="' . attr($id . '-error') . '"' ?>
+    >
+        <legend><?= html($label) ?></legend>
+        <?php foreach ($options as $option): ?>
+            <?php $optionValue = RepliqForm::optionValue($option); ?>
             <?php snippet('form-radio', [
-                'id'          => $id.'-'.urlencode($option["value"]),
-                'name'        => $name,
-                'label'       => $option["label"],
-                'value'       => $option["value"],
-                'checked'     => isset($option["checked"]),
-                'required'    => false
+                'id' => $id . '-' . $optionValue,
+                'name' => $name,
+                'label' => $option['label'],
+                'value' => $optionValue,
+                'form' => $form,
+                'checked' => isset($option['checked']) || ($oldValue !== null && (string) $oldValue === $optionValue),
+                'required' => false,
+                'inGroup' => true,
             ]) ?>
         <?php endforeach ?>
-        
+
     </fieldset>
-    <?php if(empty($error) == false)  {
-            snippet('form-notif', [
-                'notif_text' => implode('<br>', $error),
-                'class' => 'error',
-            ]);}
-    ?>
+    <?php snippet('form-field-errors', ['id' => $id, 'error' => $error]); ?>
 </div>

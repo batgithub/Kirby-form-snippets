@@ -1,0 +1,43 @@
+---
+description: Sécurité pour plugins Kirby (XSS, validation, formulaires)
+globs: **/*.php
+alwaysApply: false
+---
+
+# Sécurité Kirby
+
+## Échappement des sorties (XSS)
+
+Toute donnée dynamique affichée en HTML doit être échappée :
+
+```php
+// ❌ BAD
+<?= $label ?>
+value="<?= $form->old($id) ?>"
+
+// ✅ GOOD — contenu texte
+<?= html($label) ?>
+
+// ✅ GOOD — attribut HTML
+<input value="<?= attr($form->old($id)) ?>">
+
+// ✅ GOOD — objets Kirby
+<?= $page->title()->esc() ?>
+```
+
+Utiliser `html()` pour le contenu, `attr()` pour les attributs, `$field->esc()` pour les champs Kirby.
+
+## Formulaires
+
+- Validation serveur systématique (Uniform ou équivalent) ; règles dans une classe dédiée, pas dans les snippets
+- Protection CSRF via Uniform (`csrf` guard)
+- Honeypot anti-spam : champ masqué avec `aria-hidden="true"`, validation `maxLength` côté serveur
+- Limiter la longueur des champs (`maxLength` dans les règles)
+- Ne jamais exposer d'erreurs techniques en production ; messages génériques pour l'utilisateur
+- Pas de credentials en dur ; secrets via variables d'environnement ou options Kirby
+
+## Entrées utilisateur
+
+- Ne pas faire confiance à `$_GET`, `$_POST`, `$_FILES` sans validation
+- Filtrer les types attendus (email, tel, enum pour les select)
+- Éviter `eval()`, `include` dynamique, et requêtes SQL brutes sans requêtes préparées

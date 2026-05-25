@@ -1,3 +1,3 @@
 <div class="label-desc">
-    <?= $text ?> 
+    <?= html($text) ?>
 </div>

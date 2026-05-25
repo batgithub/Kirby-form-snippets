@@ -1,0 +1,46 @@
+---
+description: Bonnes pratiques pour le développement de plugins Kirby CMS
+alwaysApply: true
+---
+
+# Plugins Kirby CMS
+
+## Structure du plugin
+
+- Point d'entrée unique : `index.php` avec `Kirby::plugin('auteur/nom-plugin', [...])`
+- `composer.json` : `"type": "kirby-plugin"`, dépendance `getkirby/composer-installer`
+- Classes PHP : namespace dédié + autoload via `load()` dans `index.php`
+- Extensions enregistrées dans le tableau du plugin : `snippets`, `templates`, `routes`, `blueprints`, `options`, etc.
+
+```php
+// ✅ GOOD
+load(['repliq\\RepliqForm' => '/classes/form.php'], __DIR__);
+
+Kirby::plugin('baptiste/kirby-form-snippets', [
+    'snippets' => [
+        'form-input' => __DIR__ . '/snippets/fields/input.php',
+    ],
+]);
+```
+
+## Conventions de code
+
+- Préférer `snippet()` pour la composition ; passer les variables en tableau associatif explicite
+- Options configurables via `'options' => [...]` et `option('auteur.nom.option')`, jamais de valeurs en dur critiques
+- Textes utilisateur : préparer l'i18n avec `t()` / clés de traduction
+- Validation côté serveur obligatoire (ex. Kirby Uniform) ; ne jamais se fier au HTML seul
+- Respecter PSR-12 : namespaces, typage de retour, méthodes courtes et focalisées
+
+## Anti-patterns à éviter
+
+```php
+// ❌ BAD — echo direct sans échappement
+echo $userInput;
+
+// ❌ BAD — logique métier dans un snippet
+if ($_POST['email']) { mail(...); }
+
+// ✅ GOOD — logique dans une classe, rendu dans un snippet
+$rules = $form->getRules();
+snippet('form-input', ['id' => $id, 'label' => $label, 'form' => $form]);
+```

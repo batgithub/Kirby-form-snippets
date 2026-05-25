@@ -3,7 +3,7 @@
     xmlns:o="urn:schemas-microsoft-com:office:office">
 
 <head>
-    <title>Formulaire <?= strtolower($formName) ?></title>
+    <title>Formulaire <?= html(strtolower($formName)) ?></title>
     <!--[if !mso]><!-- -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!--<![endif]-->
@@ -100,7 +100,7 @@
 <body style="background-color:#FBFBFB;">
     <div
         style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-        <?= $date ?></div>
+        <?= html($date) ?></div>
     <div style="background-color:#FBFBFB;">
         <!-- Image Header -->
         <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -138,7 +138,7 @@
                                         <td align="left" style="font-size:0px;padding:0px;word-break:break-word;">
                                             <div
                                                 style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:24px;font-weight:500;line-height:32px;text-align:left;color:#2B2B2B;">
-                                                Formulaire <?= strtolower($formName) ?></div>
+                                                Formulaire <?= html(strtolower($formName)) ?></div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -146,7 +146,7 @@
                                             style="font-size:0px;padding:8px 0px 0px;word-break:break-word;">
                                             <div
                                                 style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#2B2B2B;">
-                                                <?= $date ?></div>
+                                                <?= html($date) ?></div>
                                         </td>
                                     </tr>
                                 </table>
@@ -190,7 +190,7 @@
                                                                 style="font-size:0px;padding:0px;word-break:break-word;">
                                                                 <div
                                                                     style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:14px;font-weight:bold;line-height:24px;text-align:left;color:#a1a1a1;">
-                                                                    <?= $data['label'] ?></div>
+                                                                    <?= html($data['label']) ?></div>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -200,18 +200,15 @@
                                                                     style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:18px;font-weight:400;line-height:24px;text-align:left;color:#2B2B2B;">
                                                                     <?php if($data['value'] !== ""): ?>
 
-                                                                        <?php if($data['input'] == 'checkbox-group'): ?>
+                                                                        <?php if ($data['input'] === 'checkbox-group'): ?>
                                                                             <ul>
-                                                                                <?php foreach( $data['value'] as $item): ?>
-                                                                                <li><?= urldecode($item) ?></li>
+                                                                                <?php foreach ($data['value'] as $item): ?>
+                                                                                <li><?= html($item) ?></li>
                                                                                 <?php endforeach ?>
                                                                             </ul>
 
-                                                                        <?php elseif($data['input'] == 'checkbox' || $data['input'] == 'select'):  ?>
-                                                                            <?= urldecode($data['value']) ?>
-                                                                        
-                                                                        <?php else : ?>
-                                                                            <?= $data['value'] ?>
+                                                                        <?php else: ?>
+                                                                            <?= html($data['value']) ?>
                                                                         <?php endif; ?>
                                                                     <?php else: ?>
                                                                     ----

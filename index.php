@@ -38,7 +38,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'route' => 'kirby-form-snippets/submit',
         ],
         'defaultEmailTo' => null,
-        'defaultEmailTemplate' => 'emails/submition.html',
+        'defaultEmailTemplate' => 'submition',
         'defaultEmailTheme' => [
             'width' => 600,
             'fontFamily' => "'Helvetica Neue', Helvetica, Arial, sans-serif",

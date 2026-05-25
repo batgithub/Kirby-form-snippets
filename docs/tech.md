@@ -15,7 +15,8 @@ repliq_form($formKey, $overrides)  → helpers.php → RepliqForm::fromKey()
         ├── form (Uniform\Form | RepliqFilterState)
         ├── formKey
         ├── formAction                → URL POST plugin | URL page courante (filter)
-        └── mode                      → submit | filter
+        ├── mode                      → submit | filter
+        └── honeytime                 → options guard Honeytime | null
         │
         ▼
 snippet form-page / form-filter / form-fields
@@ -24,7 +25,7 @@ snippet form-page / form-filter / form-fields
 route kirby-form-snippets/submit/{formKey}     (submit uniquement)
         │
         ▼
-RepliqForm::handleSubmit()  → validation Uniform + emailAction()
+RepliqForm::handleSubmit()  → validation Uniform + guards (honeypot, honeytime) + emailAction()
 ```
 
 ## Point d'entrée
@@ -33,11 +34,12 @@ Fichier : `index.php`
 
 | Extension | Rôle |
 |-----------|------|
-| `options` | Placeholder, messages, limites, routes, registre `forms` |
-| `routes` | GET token CSRF, POST soumission par `formKey` |
+| `options` | Placeholder, messages, limites, routes, honeytime, registre `forms` |
+| `routes` | GET token CSRF, GET timestamp Honeytime, POST soumission par `formKey` |
 | `snippets` | Markup champs et wrappers |
 | `blueprints` | Block `blocks/contact-form` |
 | `templates` | Email `emails/submition.html` |
+| `translations` | Messages FR des guards Uniform (`uniform-honeytime-*`) |
 
 | Classe / helper | Fichier | Rôle |
 |-----------------|---------|------|
@@ -47,10 +49,10 @@ Fichier : `index.php`
 
 ## Modes
 
-| `mode` | Méthode | Snippet | CSRF | Honeypot | Email | Filtrage collection |
-|--------|---------|---------|------|----------|-------|---------------------|
-| `submit` (défaut) | POST | `form-page` | oui | oui | oui | — |
-| `filter` | GET | `form-filter` | non | ignoré | non | **template / controller du site** |
+| `mode` | Méthode | Snippet | CSRF | Honeypot | Honeytime | Email | Filtrage collection |
+|--------|---------|---------|------|----------|-----------|-------|---------------------|
+| `submit` (défaut) | POST | `form-page` | oui | si champ déclaré | si activé | oui | — |
+| `filter` | GET | `form-filter` | non | ignoré | ignoré | non | **template / controller du site** |
 
 ## Résolution de la config
 
@@ -73,6 +75,7 @@ Puis, à l'instanciation de `RepliqForm` :
 | `fields.{id}.options` | **remplace** entièrement si fourni |
 | `email` | merge récursif |
 | `mode` | override gagne |
+| `honeytime` | override gagne (`true`, `false` ou tableau d'options) |
 
 Le hook avec `$context === 'submit'` est requis pour synchroniser options dynamiques et `email.to` : la route POST n'exécute pas le controller.
 
@@ -151,7 +154,8 @@ Pré-remplit les champs via `get()`. Pas de validation serveur.
 ### `form-fields`
 
 1. `form-csrf` + `form-csrf-refresh` — si `mode !== 'filter'`
-2. Boucle `RepliqForm::getInputs($form)`
+2. `form-honeytime` + `form-honeytime-refresh` — si Honeytime activé (résolu via `honeytime` passé par `form-page`, ou via `formKey` + `overrides`)
+3. Boucle `RepliqForm::getInputs($form)`
 
 Snippets utilitaires : `form-label`, `form-info`, `form-field-errors`.
 
@@ -163,12 +167,127 @@ Flux `RepliqForm::handleSubmit($key)` :
 
 1. `buildConfig($key, [], 'submit')` + hook
 2. `new Form($formConfig->getRules())`
-3. `honeypotGuard(['field' => …])` si un champ `honeypot` est déclaré (nom = clé ou `name`)
+3. `RepliqForm::applySpamGuards()` — chaîne Uniform :
+   - `honeypotGuard(['field' => …])` si un champ `honeypot` est déclaré (nom = clé ou `name`)
+   - `honeytimeGuard([…])` si Honeytime activé et clé disponible
 4. `resolveEmailConfig()` — `toFrom`, `defaultEmailTo`, `defaultEmailTemplate`
 5. `buildEmailData()` — `$formName`, `$date`, `$datas`, `$theme` injectés dans `email.data`
-6. `$form->emailAction($emailConfig)->done()`
+6. `$pipeline->emailAction($emailConfig)->done()`
 
 Uniform expose `old()`, `error()`, `success()` pour le re-rendu.
+
+## Honeytime
+
+Guard [Honeytime](https://kirby-uniform.readthedocs.io/en/latest/guards/honeytime/) Uniform : champ hidden contenant un timestamp chiffré. Rejet si la soumission intervient avant `seconds` (défaut `10`).
+
+### Activation
+
+| Niveau | Exemple |
+|--------|---------|
+| Global | `'honeytime' => ['enabled' => true, 'seconds' => 10]` dans `baptiste.kirby-form-snippets` |
+| Par formulaire | `'honeytime' => true` ou `'honeytime' => ['seconds' => 15]` dans `forms.{formKey}` |
+| Désactivation ciblée | `'honeytime' => false` sur un form alors que le global est activé |
+
+Sans clé de chiffrement, Honeytime reste inactif (pas d'erreur au rendu).
+
+### Clé de chiffrement
+
+Ordre de résolution (`RepliqForm::resolveHoneytimeKey()`) :
+
+1. `honeytime.key` dans la config fusionnée (global + surcharge form)
+2. `baptiste.kirby-form-snippets.honeytime.key`
+3. `uniform.honeytime.key` (convention Uniform)
+
+Le préfixe `base64:` est accepté et normalisé avant appel à Uniform.
+
+Génération :
+
+```bash
+head -c 32 /dev/urandom | base64
+```
+
+### Options
+
+| Clé | Défaut | Rôle |
+|-----|--------|------|
+| `enabled` | `false` | Active Honeytime sur tous les forms (sauf `honeytime => false`) |
+| `key` | `null` | Clé base64 ; fallback `uniform.honeytime.key` |
+| `seconds` | `10` | Délai minimum (secondes) avant soumission valide |
+| `field` | `uniform-honeytime` | Nom du champ POST hidden |
+| `route` | `kirby-form-snippets/honeytime-token` | Route GET pour le rafraîchissement JS |
+
+### Rendu et API
+
+- Snippet `form-honeytime` : champ hidden vide (`value=""`)
+- Snippet `form-honeytime-refresh` : `fetch()` sur `honeytime.route` → remplit le champ (même principe que `form-csrf-refresh`)
+- Route GET → `{ "value": "…" }` via `RepliqForm::generateHoneytimeValue()` (`HoneytimeGuard::encrypt`)
+- `repliq_form()` expose `honeytime` (tableau d'options guard ou `null`)
+- Méthodes publiques : `RepliqForm::resolveHoneytimeGuardOptions()`, `RepliqForm::applySpamGuards()`, `RepliqForm::generateHoneytimeValue()`
+
+Le timestamp n'est **pas** généré dans le HTML servi : il est toujours demandé côté client au chargement. Les pages formulaire peuvent donc rester en cache Kirby sans invalider Honeytime.
+
+Le champ Honeytime n'apparaît pas dans l'email (`buildEmailFieldsData` ne parcourt que `fields`).
+
+### Messages d'erreur
+
+Uniform utilise les clés i18n `uniform-honeytime-reject` (trop rapide) et `uniform-honeytime-invalid` (token absent ou corrompu). Le plugin fournit des traductions FR par défaut via `translations`.
+
+Surcharge possible dans `site/languages/fr.php` :
+
+```php
+return [
+    'translations' => [
+        'uniform-honeytime-reject' => 'Veuillez attendre quelques secondes.',
+    ],
+];
+```
+
+Les clés `messages.honeytime` et `messages.honeytimeInvalid` du plugin reprennent les textes par défaut (référence pour personnalisation cohérente avec les autres `messages.*`).
+
+## Cache
+
+Référence Kirby : [Caching pages](https://getkirby.com/docs/guide/cache).
+
+### Routes plugin (obligatoire)
+
+Exclure du cache Kirby les routes dynamiques du plugin :
+
+```php
+'cache' => [
+    'ignore' => [
+        'kirby-form-snippets/csrf-token',
+        'kirby-form-snippets/honeytime-token',
+        'kirby-form-snippets/submit',
+    ],
+],
+```
+
+| Route | Rôle |
+|-------|------|
+| `csrf.route` | Token CSRF frais pour `form-csrf-refresh` |
+| `honeytime.route` | Timestamp chiffré frais pour `form-honeytime-refresh` |
+| `submit.route` | Soumission POST Uniform |
+
+Sans `cache.ignore`, un reverse proxy ou le cache Kirby pourrait servir une réponse obsolète sur ces URLs.
+
+### Pages avec formulaire POST
+
+Uniform stocke succès/erreurs en session (pattern PRG). Kirby adapte le cache pages en fonction de la session ([doc cache](https://getkirby.com/docs/guide/cache)) : les visiteurs avec session active reçoivent une réponse non partagée.
+
+**CSRF et Honeytime** : le HTML cacheable contient des champs hidden vides ou initiaux ; au chargement, `form-csrf-refresh` et `form-honeytime-refresh` appellent les routes GET du plugin pour injecter des valeurs à jour. **Inutile d'exclure la page contact du cache pages uniquement pour Honeytime ou le CSRF**, tant que :
+
+1. les routes plugin sont dans `cache.ignore` ;
+2. le JavaScript s'exécute au chargement (pas de CSP bloquante sur `fetch` inline).
+
+`formSelector` / `formClass` doit rester **unique par formulaire** sur une même page (voir [examples.md](examples.md#plusieurs-formulaires-sur-une-page)).
+
+### Mode filtre (GET)
+
+Kirby **ne met pas en cache** les réponses dont l'URL contient une query string. Les pages `form-filter` avec `?category=…` ne nécessitent en principe aucun réglage cache supplémentaire.
+
+### CDN / reverse proxy
+
+Si un CDN cache le HTML des pages malgré Kirby, vérifiez que les routes `kirby-form-snippets/*` ne sont pas mises en cache et que le HTML des formulaires n'est pas servi stale sans exécution du JS de refresh.
 
 ## CSRF
 
@@ -202,12 +321,13 @@ Préfixe : `baptiste.kirby-form-snippets.`
 | `maxLength.input` / `.textarea` | Limites caractères (validation + attribut HTML `maxlength`) |
 | `messages.*` | Messages d'erreur Uniform |
 | `csrf.*` | Route et sélecteurs CSRF |
+| `honeytime.*` | Guard Honeytime (`enabled`, `key`, `seconds`, `field`, `route`) |
 | `submit.route` | Préfixe URL soumission |
 | `defaultEmailTo` | Fallback `toFrom` |
 | `defaultEmailTemplate` | Template email Uniform si absent de la config (`emails/submition.html`) |
 | `defaultEmailTheme` | Thème visuel par défaut de l'email (couleurs, logo, intro, footer…) |
 
-Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `in`.
+Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `honeytime`, `honeytimeInvalid`, `in`.
 
 ## Block Panel
 
@@ -263,7 +383,7 @@ Données supplémentaires dans le template : `email.templateData` (fusionné dan
 
 - `$formName` — `config.title` ou `formKey`
 - `$date` — date localisée
-- `$datas` — champs soumis (labels résolus pour select/radio/checkbox-group ; honeypot et champs décoratifs exclus)
+- `$datas` — champs soumis (labels résolus pour select/radio/checkbox-group ; honeypot, honeytime et champs décoratifs exclus)
 - `$theme` — thème fusionné
 - `$preview`, `$siteName`, `$siteUrl`
 
@@ -308,7 +428,9 @@ snippets/
   form-filter.php
   form-fields.php
   form-csrf-refresh.php
+  form-honeytime-refresh.php
   fields/
+    honeytime.php
   blocks/contact-form.php
 blueprints/blocks/contact-form.yml
 blueprints/examples/site-form-settings.yml

@@ -1,6 +1,6 @@
 # Kirby form snippets
 
-Formulaires Kirby **sans contrôleur de page** : déclarez une config, passez un `formKey`, placez le snippet où vous voulez. Validation, CSRF, honeypot et envoi d'email via [Uniform](https://github.com/mzur/kirby-uniform) v5.
+Formulaires Kirby **sans contrôleur de page** : déclarez une config, passez un `formKey`, placez le snippet où vous voulez. Validation, CSRF, honeypot, [Honeytime](https://kirby-uniform.readthedocs.io/en/latest/guards/honeytime/) et envoi d'email via [Uniform](https://github.com/mzur/kirby-uniform) v5.
 
 ## Prérequis
 
@@ -22,10 +22,13 @@ Ajoutez dans `site/config/config.php` :
 'cache' => [
     'ignore' => [
         'kirby-form-snippets/csrf-token',
+        'kirby-form-snippets/honeytime-token',
         'kirby-form-snippets/submit',
     ],
 ],
 ```
+
+Ces routes ne doivent **pas** être mises en cache : elles servent au rafraîchissement JS du token CSRF et du timestamp Honeytime (compatible avec le cache des pages). Détail → [docs/tech.md](docs/tech.md#cache).
 
 ## Démarrage rapide
 
@@ -132,6 +135,37 @@ Le template email par défaut (`emails/submition.html`) se personnalise **sans m
 
 Template custom : `'template' => 'emails/mon-template.html'` ou surcharge dans `site/templates/emails/`. Détail → [docs/tech.md](docs/tech.md#template-email).
 
+### 4. Honeytime (optionnel)
+
+Le [Honeytime guard](https://kirby-uniform.readthedocs.io/en/latest/guards/honeytime/) Uniform rejette les soumissions trop rapides (bots). Contrairement au honeypot, ce n'est **pas** un champ dans `fields` : c'est une option globale ou par formulaire.
+
+Générez une clé de chiffrement :
+
+```bash
+head -c 32 /dev/urandom | base64
+```
+
+Puis dans `site/config/config.php` :
+
+```php
+'uniform.honeytime.key' => 'base64:VOTRE_CLE_GENEREE=',
+
+'baptiste.kirby-form-snippets' => [
+    'honeytime' => [
+        'enabled' => true,
+        'seconds' => 10, // délai minimum avant soumission (défaut Uniform)
+    ],
+    'forms' => [
+        'contact' => [
+            // 'honeytime' => false, // désactiver sur ce form uniquement
+            'fields' => [ /* … */ ],
+        ],
+    ],
+],
+```
+
+Le champ hidden et la validation serveur sont gérés automatiquement ; le timestamp est régénéré en JavaScript (comme le CSRF), y compris si la page est en cache. Détail → [docs/inputs.md](docs/inputs.md#honeytime--anti-spam-par-délai), [docs/tech.md](docs/tech.md#honeytime).
+
 ## Deux modes
 
 | Mode | Config | Snippet | Méthode | Rôle |
@@ -183,6 +217,8 @@ Scénarios complets (Panel, controller, tags…) → [docs/examples.md](docs/exa
 | Markup HTML personnalisé | [docs/examples.md](docs/examples.md#markup-personnalisé) |
 | Personnalisation CSS | [docs/style.md](docs/style.md) |
 | Personnalisation email (thème, logo, couleurs) | [docs/tech.md](docs/tech.md#template-email) |
+| Honeytime (soumission trop rapide) | [docs/inputs.md](docs/inputs.md#honeytime--anti-spam-par-délai) |
+| Cache des pages + formulaires | [docs/tech.md](docs/tech.md#cache) |
 | Block Panel | [docs/examples.md](docs/examples.md#block-panel) |
 
 ## Block Kirby
@@ -208,7 +244,7 @@ Le block expose `formKey`, `submitLabel` et `successMessage` dans le Panel.
 | **[docs/inputs.md](docs/inputs.md)** | Référence des champs, options, `toFrom`, checklists |
 | **[docs/examples.md](docs/examples.md)** | Scénarios d'implémentation pas à pas |
 | **[docs/style.md](docs/style.md)** | Personnalisation visuelle (classes, CSS) |
-| **[docs/tech.md](docs/tech.md)** | Architecture, routes, CSRF, flux internes |
+| **[docs/tech.md](docs/tech.md)** | Architecture, routes, CSRF, honeytime, cache, flux internes |
 
 ## Wiki
 

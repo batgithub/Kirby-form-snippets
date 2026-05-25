@@ -27,6 +27,9 @@ $successMessage = $successMessage ?? 'Merci, votre message a bien été envoyé.
             'form' => $form,
             'formSelector' => $formSelector,
             'mode' => $mode ?? 'submit',
+            'formKey' => $formKey,
+            'overrides' => $overrides ?? [],
+            'honeytime' => $honeytime ?? null,
         ]) ?>
 
         <button type="submit"><?= html($submitLabel) ?></button>

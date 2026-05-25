@@ -5,6 +5,7 @@ Scénarios pas à pas pour les cas courants. La structure des champs se déclare
 **Sommaire**
 
 - [Contact simple](#contact-simple)
+- [Contact avec Honeytime](#contact-avec-honeytime)
 - [Contact — options depuis le Panel](#contact--options-depuis-le-panel)
 - [Contact — email selon l'objet](#contact--email-selon-lobjet)
 - [Contact — email par formKey (Panel)](#contact--email-par-formkey-panel)
@@ -59,6 +60,72 @@ Formulaire statique, un seul destinataire. Aucune admin Panel.
 ```php
 <?php snippet('form-page', ['formKey' => 'contact']) ?>
 ```
+
+---
+
+## Contact avec Honeytime
+
+Formulaire public avec honeypot **et** [Honeytime](https://kirby-uniform.readthedocs.io/en/latest/guards/honeytime/) : champ hidden, guard serveur et **timestamp régénéré en JS** (compatible cache pages), une fois la clé configurée.
+
+**Fichiers :** `site/config/config.php`, template ou block.
+
+```php
+// Clé site (une fois)
+'uniform.honeytime.key' => 'base64:VOTRE_CLE_GENEREE=',
+
+'baptiste.kirby-form-snippets' => [
+    'honeytime' => [
+        'enabled' => true,
+        'seconds' => 10,
+    ],
+    'forms' => [
+        'contact' => [
+            'fields' => [
+                'name' => [
+                    'input' => 'input',
+                    'label' => 'Nom',
+                    'required' => true,
+                ],
+                'email' => [
+                    'input' => 'input',
+                    'type' => 'email',
+                    'label' => 'Email',
+                    'required' => true,
+                ],
+                'message' => [
+                    'input' => 'textarea',
+                    'label' => 'Message',
+                    'required' => true,
+                ],
+                'website' => [
+                    'input' => 'honeypot',
+                ],
+            ],
+            'email' => [
+                'to' => 'contact@example.com',
+                'from' => 'noreply@example.com',
+                'subject' => 'Nouveau message',
+            ],
+        ],
+    ],
+],
+```
+
+**Désactiver Honeytime sur un seul formulaire** alors que le global est activé :
+
+```php
+'newsletter' => [
+    'honeytime' => false,
+    'fields' => [ /* … */ ],
+],
+```
+
+**Tests manuels :**
+
+1. Soumettre immédiatement après chargement (attendre que le JS ait rempli le champ) → rejet (message « patienter »).
+2. Attendre ≥ `seconds`, remplir et envoyer → succès.
+3. Vérifier que le champ Honeytime n'apparaît pas dans l'email reçu.
+4. Avec cache pages activé : recharger une page cache servie, soumettre trop tôt → rejet ; après délai → succès.
 
 ---
 
@@ -370,7 +437,7 @@ if ($q = get('q')) {
 3. `form-filter` pré-remplit le select
 4. Le template filtre `$articles`
 
-Pas de CSRF, pas de honeypot, pas de route POST. Voir [tech.md](tech.md) pour le cache et les query strings.
+Pas de CSRF, pas de honeypot, pas de honeytime, pas de route POST. En mode GET, Kirby ne cache pas les URLs avec query string — voir [tech.md](tech.md#cache).
 
 ---
 
@@ -488,6 +555,9 @@ Sans `form-page`, composez avec `repliq_form()` et `form-fields` :
                 'formConfig' => $formConfig,
                 'form' => $form,
                 'formSelector' => '.contact-form',
+                'formKey' => $formKey,
+                'overrides' => $overrides ?? [],
+                'honeytime' => $honeytime ?? null,
             ]) ?>
             <button type="submit">Envoyer</button>
         </form>
@@ -535,6 +605,8 @@ La **composition des champs** reste dans `config.php` — le block ne permet pas
 | Clic « Filtrer » | `get('champ')` dans le template | template |
 | Options Panel | `optionsFrom` dans config | `config.php` + blueprint Site/page |
 | Email dynamique | `toFrom` callable ou hook | `config.php` |
+| Anti-spam Honeytime | `honeytime.enabled` + `uniform.honeytime.key` + route `honeytime-token` | `config.php` |
+| Cache | `cache.ignore` sur les routes plugin | `config.php` |
 
 Ordre de fusion : **`config.php`** → hook → overrides controller. Le Panel est lu via `optionsFrom` / `toFrom`, pas en remplacement de la config.
 

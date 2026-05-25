@@ -19,6 +19,7 @@ Guide de configuration dans `site/config/config.php`, clé `baptiste.kirby-form-
 - [Destinataires email](#destinataires-email-tofrom)
 - [Overrides et hook](#overrides-et-hook)
 - [Champs interactifs](#champs-interactifs)
+- [Honeytime — anti-spam par délai](#honeytime--anti-spam-par-délai)
 - [Champs décoratifs](#champs-décoratifs)
 - [Checklists](#checklist-nouveau-formulaire-mode-submit)
 
@@ -324,7 +325,7 @@ Alias de la section ci-dessus pour navigation interne.
 
 ## Mode filtre
 
-`'mode' => 'filter'` — formulaire GET, pas de clé `email`, pas de CSRF ni honeypot.
+`'mode' => 'filter'` — formulaire GET, pas de clé `email`, pas de CSRF, honeypot ni honeytime.
 
 ```php
 'blog-filter' => [
@@ -608,6 +609,87 @@ Utilisez un nom peu évident pour le honeypot :
 
 ---
 
+## Honeytime — anti-spam par délai
+
+Guard Uniform optionnel : rejette les soumissions **trop rapides** (comportement typique des bots). Champ hidden avec timestamp chiffré — invisible pour l'utilisateur, sans JavaScript.
+
+**Ce n'est pas un type `input` dans `fields`.** Configuration au niveau plugin ou formulaire. Doc Uniform : [Honeytime Guard](https://kirby-uniform.readthedocs.io/en/latest/guards/honeytime/).
+
+### Prérequis
+
+Clé de chiffrement (une fois par site) :
+
+```bash
+head -c 32 /dev/urandom | base64
+```
+
+```php
+// site/config/config.php
+'uniform.honeytime.key' => 'base64:VOTRE_CLE=',
+```
+
+### Activation globale
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'honeytime' => [
+        'enabled' => true,
+        'seconds' => 10,              // délai minimum (défaut Uniform)
+        'field' => 'uniform-honeytime', // nom du champ hidden
+        // 'key' => '…',              // optionnel si uniform.honeytime.key est défini
+    ],
+    'forms' => [
+        'contact' => [ /* … */ ],
+    ],
+],
+```
+
+### Par formulaire
+
+| Valeur | Effet |
+|--------|-------|
+| `'honeytime' => true` | Active avec les options globales |
+| `'honeytime' => false` | Désactive même si global activé |
+| `'honeytime' => ['seconds' => 15]` | Active avec surcharges locales |
+
+```php
+'contact' => [
+    'honeytime' => true,
+    'fields' => [ /* … */ ],
+],
+'newsletter' => [
+    'honeytime' => false, // pas de Honeytime sur ce form
+    'fields' => [ /* … */ ],
+],
+```
+
+Le snippet `form-fields` injecte automatiquement le champ hidden et `form-honeytime-refresh` (timestamp frais via JS, compatible cache pages). `handleSubmit()` appelle `honeytimeGuard()`. Combinable avec le honeypot.
+
+### Rafraîchissement JS (cache)
+
+Comme le CSRF, le timestamp n'est **pas** figé dans le HTML :
+
+1. `form-honeytime` — `<input type="hidden" value="">`
+2. Au chargement, `form-honeytime-refresh` appelle `GET kirby-form-snippets/honeytime-token` → `{ "value": "…" }`
+
+Ajoutez la route à `cache.ignore` (voir [README](../README.md) et [tech.md](tech.md#cache)).
+
+### Honeypot + Honeytime
+
+Recommandé pour les formulaires publics :
+
+```php
+'contact' => [
+    'honeytime' => true,
+    'fields' => [
+        // … champs visibles …
+        'website' => ['input' => 'honeypot'],
+    ],
+],
+```
+
+---
+
 ## Champs décoratifs
 
 Pas de soumission, pas de validation. Utiles pour structurer visuellement le formulaire.
@@ -740,11 +822,12 @@ Formulaire de contact avec structure, validation et honeypot :
 
 1. Choisir un `formKey` unique (ex. `contact`, `newsletter`, `devis`).
 2. Lister les champs dans `fields` — une clé par champ soumis.
-3. Ajouter `'input' => 'honeypot'` en fin de liste.
-4. Configurer `email` (destinataire, expéditeur, sujet — `to` ou `toFrom`).
-5. Exclure les routes CSRF/submit du cache Kirby (voir [README](../README.md)).
-6. Afficher avec `snippet('form-page', ['formKey' => '…'])`.
-7. Tester : champs requis, email invalide, honeypot rempli, succès après envoi.
+3. Ajouter `'input' => 'honeypot'` en fin de liste (recommandé).
+4. (Optionnel) Activer Honeytime — `'honeytime' => true` et clé `uniform.honeytime.key` (voir [Honeytime](#honeytime--anti-spam-par-délai)).
+5. Configurer `email` (destinataire, expéditeur, sujet — `to` ou `toFrom`).
+6. Exclure les routes plugin du cache Kirby : `csrf-token`, `honeytime-token`, `submit` (voir [README](../README.md#installation)).
+7. Afficher avec `snippet('form-page', ['formKey' => '…'])`.
+8. Tester : champs requis, email invalide, honeypot rempli, soumission immédiate (Honeytime), succès après envoi.
 
 ## Checklist formulaire filtre
 
@@ -752,7 +835,7 @@ Formulaire de contact avec structure, validation et honeypot :
 2. Définir `'mode' => 'filter'` et les champs dans `fields`.
 3. Afficher avec `snippet('form-filter', ['formKey' => '…'])`.
 4. Appliquer `get('…')` sur la collection dans le template.
-5. Adapter la config cache si la page dépend des paramètres GET.
+5. (Optionnel) Vérifier le cache : routes plugin dans `cache.ignore` ; Honeytime/CSRF se rafraîchissent en JS — pas besoin d'exclure la page du cache pages pour ça (voir [tech.md](tech.md#cache)).
 
 ## Personnalisation des messages d'erreur
 
@@ -764,7 +847,9 @@ Surcharge dans `config.php` :
 'baptiste.kirby-form-snippets.maxLength.input' => 500,
 ```
 
-Clés disponibles : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `in`.
+Clés disponibles : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `honeytime`, `honeytimeInvalid`, `in`.
+
+Pour Honeytime, les messages affichés passent par les clés Uniform `uniform-honeytime-reject` et `uniform-honeytime-invalid` (traductions FR fournies par le plugin). Voir [tech.md](tech.md#honeytime).
 
 ## Voir aussi
 

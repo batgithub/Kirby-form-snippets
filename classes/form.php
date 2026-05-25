@@ -8,6 +8,7 @@ use Kirby\Cms\Page;
 use Kirby\Cms\StructureObject;
 use Kirby\Toolkit\Str;
 use Uniform\Form;
+use Uniform\Guards\HoneytimeGuard;
 
 class RepliqForm
 {
@@ -32,7 +33,7 @@ class RepliqForm
 
     /**
      * @param array<string, mixed> $overrides
-     * @return array{formConfig: self, form: Form|RepliqFilterState, formKey: string, formAction: string, mode: string}|null
+     * @return array{formConfig: self, form: Form|RepliqFilterState, formKey: string, formAction: string, mode: string, honeytime: array<string, mixed>|null}|null
      */
     public static function fromKey(string $key, array $overrides = []): ?array
     {
@@ -59,6 +60,7 @@ class RepliqForm
             'formKey' => $key,
             'formAction' => $formAction,
             'mode' => $mode,
+            'honeytime' => self::resolveHoneytimeGuardOptions($config),
         ];
     }
 
@@ -83,11 +85,7 @@ class RepliqForm
 
         $formConfig = new self($config['fields']);
         $form = new Form($formConfig->getRules());
-        $honeypotField = self::resolveHoneypotField($config['fields']);
-
-        if ($honeypotField !== null) {
-            $form->honeypotGuard(['field' => $honeypotField]);
-        }
+        $pipeline = self::applySpamGuards($form, $config);
 
         $email = is_array($config['email'] ?? null) ? $config['email'] : [];
         $emailConfig = self::resolveEmailConfig($email, $key);
@@ -98,7 +96,88 @@ class RepliqForm
 
         unset($emailConfig['theme'], $emailConfig['themeFrom'], $emailConfig['templateData']);
 
-        $form->emailAction($emailConfig)->done();
+        $pipeline->emailAction($emailConfig)->done();
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return array{key: string, seconds: int, field: string}|null
+     */
+    public static function resolveHoneytimeGuardOptions(array $config): ?array
+    {
+        $global = option('baptiste.kirby-form-snippets.honeytime');
+        $global = is_array($global) ? $global : [];
+        $formSetting = $config['honeytime'] ?? null;
+
+        if ($formSetting === false) {
+            return null;
+        }
+
+        $enabled = false;
+        $overrides = [];
+
+        if ($formSetting === true) {
+            $enabled = true;
+        } elseif (is_array($formSetting)) {
+            $enabled = true;
+            $overrides = $formSetting;
+        } elseif ($formSetting === null) {
+            $enabled = (bool) ($global['enabled'] ?? false);
+        }
+
+        if (!$enabled) {
+            return null;
+        }
+
+        $merged = array_replace_recursive($global, $overrides);
+        $key = self::resolveHoneytimeKey($merged);
+
+        if ($key === null) {
+            return null;
+        }
+
+        $seconds = $merged['seconds'] ?? 10;
+        $field = $merged['field'] ?? 'uniform-honeytime';
+
+        return [
+            'key' => $key,
+            'seconds' => is_numeric($seconds) ? (int) $seconds : 10,
+            'field' => is_string($field) && $field !== '' ? $field : 'uniform-honeytime',
+        ];
+    }
+
+    public static function generateHoneytimeValue(): ?string
+    {
+        $global = option('baptiste.kirby-form-snippets.honeytime');
+        $global = is_array($global) ? $global : [];
+        $key = self::resolveHoneytimeKey($global);
+
+        if ($key === null) {
+            return null;
+        }
+
+        return HoneytimeGuard::encrypt($key, (string) time());
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public static function applySpamGuards(Form $form, array $config): Form
+    {
+        $pipeline = $form;
+        $honeypotField = self::resolveHoneypotField($config['fields']);
+
+        if ($honeypotField !== null) {
+            $pipeline = $pipeline->honeypotGuard(['field' => $honeypotField]);
+        }
+
+        $honeytimeOptions = self::resolveHoneytimeGuardOptions($config);
+
+        if ($honeytimeOptions !== null) {
+            $pipeline = $pipeline->honeytimeGuard($honeytimeOptions);
+        }
+
+        return $pipeline;
     }
 
     /**
@@ -368,6 +447,37 @@ class RepliqForm
         }
 
         return $base;
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    private static function resolveHoneytimeKey(array $settings): ?string
+    {
+        $candidates = [
+            $settings['key'] ?? null,
+            option('baptiste.kirby-form-snippets.honeytime.key'),
+            option('uniform.honeytime.key'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (!is_string($candidate) || $candidate === '') {
+                continue;
+            }
+
+            return self::normalizeHoneytimeKey($candidate);
+        }
+
+        return null;
+    }
+
+    private static function normalizeHoneytimeKey(string $key): string
+    {
+        if (str_starts_with($key, 'base64:')) {
+            return substr($key, 7);
+        }
+
+        return $key;
     }
 
     /**

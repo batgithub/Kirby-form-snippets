@@ -80,6 +80,7 @@ Structure type d'un formulaire en mode submit (`form-page`) :
 <!-- Formulaire -->
 <form class="repliq-form-contact" action="…" method="post">
     <!-- CSRF (champ hidden) -->
+    <!-- Honeytime (champ hidden, si activé — pas de style requis) -->
 
     <!-- Champ texte -->
     <div class="field">
@@ -163,6 +164,7 @@ Le bouton submit n'a **pas** de classe dédiée : stylisez `form button[type="su
 - Conserver un contraste ≥ 4,5:1 pour le texte et les messages d'erreur.
 - `:focus-visible` sur inputs, select, textarea et bouton submit.
 - La classe `.honeypot` doit rester invisible (`display: none` ou équivalent sr-only) — ne jamais la rendre visible.
+- Honeytime : champ hidden injecté par le plugin — aucune règle CSS nécessaire.
 
 ---
 

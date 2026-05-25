@@ -16,6 +16,13 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'textarea' => 3000,
             'honeypot' => 3000,
         ],
+        'honeytime' => [
+            'enabled' => false,
+            'key' => null,
+            'seconds' => 10,
+            'field' => 'uniform-honeytime',
+            'route' => 'kirby-form-snippets/honeytime-token',
+        ],
         'messages' => [
             'required' => 'Merci d\'entrer une réponse',
             'requiredSelect' => 'Merci de selectionner un élément',
@@ -27,6 +34,8 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'maxLengthInput' => 'Votre réponse est limitée à 1000 caractères',
             'maxLengthTextarea' => 'Votre réponse est limitée à 3000 caractères',
             'honeypot' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
+            'honeytime' => 'Merci de patienter quelques secondes avant d\'envoyer le formulaire.',
+            'honeytimeInvalid' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
             'in' => 'La valeur selectionnée n\'est pas valide',
         ],
         'csrf' => [
@@ -70,6 +79,19 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
                 },
             ],
             [
+                'pattern' => option('baptiste.kirby-form-snippets.honeytime.route'),
+                'method' => 'GET',
+                'action' => function () {
+                    $value = repliq\RepliqForm::generateHoneytimeValue();
+
+                    if ($value === null) {
+                        return Response::json(['error' => 'Honeytime not configured'], 503);
+                    }
+
+                    return Response::json(['value' => $value]);
+                },
+            ],
+            [
                 'pattern' => option('baptiste.kirby-form-snippets.submit.route') . '/(:any)',
                 'method' => 'POST',
                 'action' => function (string $key) {
@@ -95,8 +117,10 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-checkbox-group' => __DIR__ . '/snippets/fields/checkbox-group.php',
         'form-radio-group' => __DIR__ . '/snippets/fields/radio-group.php',
         'form-honeypot' => __DIR__ . '/snippets/fields/honeypot.php',
+        'form-honeytime' => __DIR__ . '/snippets/fields/honeytime.php',
         'form-csrf' => __DIR__ . '/snippets/fields/csrf.php',
         'form-csrf-refresh' => __DIR__ . '/snippets/form-csrf-refresh.php',
+        'form-honeytime-refresh' => __DIR__ . '/snippets/form-honeytime-refresh.php',
         'form-field-errors' => __DIR__ . '/snippets/fields/field-errors.php',
         'form-line' => __DIR__ . '/snippets/fields/line.php',
         'form-info' => __DIR__ . '/snippets/fields/info.php',
@@ -105,5 +129,11 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-section-title' => __DIR__ . '/snippets/fields/section-title.php',
         'form-select' => __DIR__ . '/snippets/fields/select.php',
         'blocks/contact-form' => __DIR__ . '/snippets/blocks/contact-form.php',
+    ],
+    'translations' => [
+        'fr' => [
+            'uniform-honeytime-reject' => 'Merci de patienter quelques secondes avant d\'envoyer le formulaire.',
+            'uniform-honeytime-invalid' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
+        ],
     ],
 ]);

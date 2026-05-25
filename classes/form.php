@@ -382,8 +382,9 @@ class RepliqForm
             return $config;
         }
 
-        /** @var array<string, mixed> */
-        return $kirby->apply('repliq.form.config', [$config, $formKey, $context], 'array');
+        $result = $kirby->apply('repliq.form.config', [$config, $formKey, $context]);
+
+        return is_array($result) ? $result : $config;
     }
 
     /**

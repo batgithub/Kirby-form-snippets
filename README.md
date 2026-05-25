@@ -36,6 +36,7 @@ Dans `site/config/config.php` :
 ```php
 'baptiste.kirby-form-snippets.forms' => [
     'contact' => [
+        'title' => 'Contact',
         'fields' => [
             'name' => [
                 'input' => 'input',
@@ -61,6 +62,10 @@ Dans `site/config/config.php` :
             'to' => 'contact@example.com',
             'from' => 'noreply@example.com',
             'subject' => 'Nouveau message depuis le site',
+            'theme' => [
+                'intro' => 'Message reçu via le formulaire contact.',
+                'colors' => ['accent' => '#2563EB'],
+            ],
         ],
     ],
 ],
@@ -77,6 +82,55 @@ Dans un template, un snippet ou un block :
 ```
 
 C'est tout. Le plugin gère validation, CSRF, honeypot, envoi email et redirection vers la page courante.
+
+### 3. Personnaliser l'email (optionnel)
+
+Le template email par défaut (`emails/submition.html`) se personnalise **sans modifier le HTML** via `defaultEmailTheme` (global) et `email.theme` (par formulaire).
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'defaultEmailTheme' => [
+        'logo' => 'https://example.com/logo.png',
+        'colors' => [
+            'pageBg' => '#F5F5F5',
+            'cardBg' => '#FFFFFF',
+            'border' => '#E5E5E5',
+            'label' => '#737373',
+            'text' => '#171717',
+            'accent' => '#2563EB',
+        ],
+    ],
+    'forms' => [
+        'contact' => [
+            'title' => 'Contact', // titre affiché dans l'email
+            // …
+            'email' => [
+                'to' => 'contact@example.com',
+                'from' => 'noreply@example.com',
+                'subject' => 'Nouveau message depuis le site',
+                'theme' => [
+                    'intro' => 'Message reçu via le formulaire contact.',
+                    'footer' => 'Répondre via reply-to si disponible.',
+                    'colors' => ['accent' => '#E11D48'], // merge partiel
+                ],
+                // Depuis le Panel (fichier ou structure) :
+                // 'themeFrom' => 'site.emailBranding',
+                // 'themeFrom' => ['field' => 'formEmailThemes', 'match' => 'formKey'],
+            ],
+        ],
+    ],
+],
+```
+
+| Clé `theme` | Rôle |
+|-------------|------|
+| `colors.*` | Couleurs (`pageBg`, `cardBg`, `border`, `label`, `text`, `accent`) |
+| `logo`, `logoAlt`, `logoLink` | En-tête avec logo |
+| `intro`, `footer`, `preview` | Textes |
+| `hideEmptyFields` | Masquer les champs vides |
+| `templateData` | Variables supplémentaires dans le template |
+
+Template custom : `'template' => 'emails/mon-template.html'` ou surcharge dans `site/templates/emails/`. Détail → [docs/tech.md](docs/tech.md#template-email).
 
 ## Deux modes
 
@@ -128,6 +182,7 @@ Scénarios complets (Panel, controller, tags…) → [docs/examples.md](docs/exa
 | Overrides depuis un controller | [docs/examples.md](docs/examples.md#options-depuis-un-controller) |
 | Markup HTML personnalisé | [docs/examples.md](docs/examples.md#markup-personnalisé) |
 | Personnalisation CSS | [docs/style.md](docs/style.md) |
+| Personnalisation email (thème, logo, couleurs) | [docs/tech.md](docs/tech.md#template-email) |
 | Block Panel | [docs/examples.md](docs/examples.md#block-panel) |
 
 ## Block Kirby

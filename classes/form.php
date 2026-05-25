@@ -201,6 +201,152 @@ class RepliqForm
     }
 
     /**
+     * @param bool|array<string, mixed>|null $snippetOverride
+     * @return array{enabled: bool, title: string}
+     */
+    public static function resolveErrorsSummarySetting(
+        string $formKey,
+        bool|array|null $snippetOverride = null
+    ): array {
+        $title = 'Le formulaire contient des erreurs';
+        $global = option('baptiste.kirby-form-snippets.errorsSummary');
+
+        if (is_array($global) && is_string($global['title'] ?? null) && $global['title'] !== '') {
+            $title = $global['title'];
+        }
+
+        if ($snippetOverride !== null) {
+            return self::normalizeErrorsSummarySetting($snippetOverride, $title);
+        }
+
+        $formConfig = self::getFormConfig($formKey);
+
+        if (isset($formConfig['errorsSummary'])) {
+            return self::normalizeErrorsSummarySetting($formConfig['errorsSummary'], $title);
+        }
+
+        return self::normalizeErrorsSummarySetting($global, $title);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return list<string>
+     */
+    public static function errorsSummarySkipKeys(array $config): array
+    {
+        $skip = [
+            (string) option('baptiste.kirby-form-snippets.csrf.field', 'csrf_token'),
+        ];
+
+        $fields = is_array($config['fields'] ?? null) ? $config['fields'] : [];
+        $honeypot = self::resolveHoneypotField($fields);
+
+        if ($honeypot !== null) {
+            $skip[] = $honeypot;
+        }
+
+        $honeytime = self::resolveHoneytimeGuardOptions($config);
+
+        if ($honeytime !== null) {
+            $skip[] = $honeytime['field'];
+        }
+
+        return $skip;
+    }
+
+    /**
+     * @param object $form
+     * @param array<string, mixed> $overrides
+     * @return list<array{id: string, label: string, messages: list<string>}>
+     */
+    public static function buildErrorsSummary(
+        object $form,
+        string $formKey,
+        array $overrides = []
+    ): array {
+        if (!method_exists($form, 'errors') || count($form->errors()) === 0) {
+            return [];
+        }
+
+        $config = self::buildConfig($formKey, $overrides, 'render');
+
+        if ($config === null) {
+            return [];
+        }
+
+        $fields = is_array($config['fields'] ?? null) ? $config['fields'] : [];
+        $skipKeys = self::errorsSummarySkipKeys($config);
+        $items = [];
+
+        foreach ($form->errors() as $fieldKey => $messages) {
+            if (!is_string($fieldKey) || !is_array($messages) || $messages === []) {
+                continue;
+            }
+
+            if (in_array($fieldKey, $skipKeys, true)) {
+                continue;
+            }
+
+            $field = $fields[$fieldKey] ?? null;
+
+            if (is_array($field) && self::isDecorativeFieldInput($field['input'] ?? null)) {
+                continue;
+            }
+
+            if (is_array($field) && ($field['input'] ?? null) === 'honeypot') {
+                continue;
+            }
+
+            $label = is_array($field) && is_string($field['label'] ?? null) && $field['label'] !== ''
+                ? $field['label']
+                : $fieldKey;
+
+            $items[] = [
+                'id' => $fieldKey,
+                'label' => $label,
+                'messages' => array_map('strval', $messages),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param bool|array<string, mixed>|mixed $setting
+     * @return array{enabled: bool, title: string}
+     */
+    private static function normalizeErrorsSummarySetting(mixed $setting, string $defaultTitle): array
+    {
+        if (is_bool($setting)) {
+            return [
+                'enabled' => $setting,
+                'title' => $defaultTitle,
+            ];
+        }
+
+        if (!is_array($setting)) {
+            return [
+                'enabled' => false,
+                'title' => $defaultTitle,
+            ];
+        }
+
+        $title = is_string($setting['title'] ?? null) && $setting['title'] !== ''
+            ? $setting['title']
+            : $defaultTitle;
+
+        return [
+            'enabled' => (bool) ($setting['enabled'] ?? false),
+            'title' => $title,
+        ];
+    }
+
+    private static function isDecorativeFieldInput(mixed $input): bool
+    {
+        return in_array($input, ['line', 'card', 'section-title', 'info'], true);
+    }
+
+    /**
      * @param array<string, mixed> $overrides
      * @return array<string, mixed>|null
      */

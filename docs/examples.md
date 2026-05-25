@@ -551,6 +551,11 @@ Sans `form-page`, composez avec `repliq_form()` et `form-fields` :
         <p>Merci, votre message a bien été envoyé.</p>
     <?php else: ?>
         <form class="contact-form" action="<?= esc($formAction, 'attr') ?>" method="post">
+            <?php snippet('form-errors-summary', [
+                'form' => $form,
+                'formKey' => $formKey,
+                'overrides' => $overrides ?? [],
+            ]) ?>
             <?php snippet('form-fields', [
                 'formConfig' => $formConfig,
                 'form' => $form,

@@ -135,8 +135,11 @@ Règles générées par `RepliqForm::getRules()` :
 | `formSelector` | `.{formClass}` |
 | `submitLabel` | `Envoyer` |
 | `successMessage` | message de remerciement |
+| `errorsSummary` | — (bool ou `['title' => '…']`) ; sinon option globale / par formulaire |
 
-Succès Uniform → message ; sinon → `<form method="post" action="{submitUrl}">`.
+Succès Uniform → message ; sinon → `<form method="post" action="{submitUrl}">`. Si le récap d'erreurs est activé, `form-errors-summary` est rendu en tête du `<form>` (en plus des `notif.error` par champ).
+
+Option globale : `baptiste.kirby-form-snippets.errorsSummary` (`enabled`, `title`). Par formulaire : `errorsSummary => true` dans `forms.{formKey}`.
 
 ### `form-filter`
 
@@ -157,7 +160,7 @@ Pré-remplit les champs via `get()`. Pas de validation serveur.
 2. `form-honeytime` + `form-honeytime-refresh` — si Honeytime activé (résolu via `honeytime` passé par `form-page`, ou via `formKey` + `overrides`)
 3. Boucle `RepliqForm::getInputs($form)`
 
-Snippets utilitaires : `form-label`, `form-info`, `form-field-errors`.
+Snippets utilitaires : `form-label`, `form-info`, `form-field-errors`, `form-errors-summary`.
 
 ## Soumission POST
 

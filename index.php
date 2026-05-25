@@ -38,6 +38,10 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'honeytimeInvalid' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
             'in' => 'La valeur selectionnée n\'est pas valide',
         ],
+        'errorsSummary' => [
+            'enabled' => false,
+            'title' => 'Le formulaire contient des erreurs',
+        ],
         'csrf' => [
             'route' => 'kirby-form-snippets/csrf-token',
             'field' => 'csrf_token',
@@ -110,6 +114,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-page' => __DIR__ . '/snippets/form-page.php',
         'form-filter' => __DIR__ . '/snippets/form-filter.php',
         'form-fields' => __DIR__ . '/snippets/form-fields.php',
+        'form-errors-summary' => __DIR__ . '/snippets/form-errors-summary.php',
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',
         'form-checkbox' => __DIR__ . '/snippets/fields/checkbox.php',

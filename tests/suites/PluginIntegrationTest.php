@@ -15,7 +15,9 @@ final class PluginIntegrationTest extends TestCase
         $plugin = kirby()->plugin('baptiste/kirby-form-snippets');
 
         $this->assertNotNull($plugin);
-        $this->assertArrayHasKey('form-page', $plugin->extends()['snippets'] ?? []);
+        $snippets = $plugin->extends()['snippets'] ?? [];
+        $this->assertArrayHasKey('form-page', $snippets);
+        $this->assertArrayHasKey('form-errors-summary', $snippets);
     }
 
     public function testCsrfRouteReturnsToken(): void

@@ -79,6 +79,9 @@ Structure type d'un formulaire en mode submit (`form-page`) :
 
 <!-- Formulaire -->
 <form class="repliq-form-contact" action="…" method="post">
+    <!-- Récap erreurs (si errorsSummary activé) -->
+    <div class="form-errors-summary" role="alert">…</div>
+
     <!-- CSRF (champ hidden) -->
     <!-- Honeytime (champ hidden, si activé — pas de style requis) -->
 
@@ -132,7 +135,8 @@ Structure type d'un formulaire en mode submit (`form-page`) :
 | `wrap-input` | `<div>` | Flex interne checkbox/radio (input + label) |
 | `cursor-pointer` | `<input>`, `<p>` | Curseur pointeur sur les contrôles cliquables |
 | `label-desc` | `<div>` | Texte d'aide (`info` dans la config) |
-| `notif.error` | `<span>` | Message d'erreur (`role="alert"`) |
+| `notif.error` | `<span>` | Message d'erreur par champ (`role="alert"`) |
+| `form-errors-summary` | `<div>` | Récapitulatif des erreurs en tête de formulaire (`role="alert"`) |
 | `form-section-title` | `<a>` | Titre de section cliquable (ancre) |
 | `form-card` | `<div>` | Encadré informatif |
 | `honeypot` | `<div>` | Piège anti-spam — **ne pas afficher** |
@@ -247,6 +251,24 @@ Exemple minimal à placer dans `assets/css/forms.css` (ou équivalent) :
 .repliq-form-contact .notif.error {
     color: var(--form-error-color, #b00020);
     font-size: 0.875rem;
+}
+
+.repliq-form-contact .form-errors-summary {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--form-error-color, #b00020);
+    border-radius: 4px;
+    color: var(--form-error-color, #b00020);
+}
+
+.repliq-form-contact .form-errors-summary h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+}
+
+.repliq-form-contact .form-errors-summary ul {
+    margin: 0;
+    padding-left: 1.25rem;
 }
 
 /* Checkbox / radio */

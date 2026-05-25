@@ -86,6 +86,24 @@ Dans un template, un snippet ou un block :
 
 C'est tout. Le plugin gère validation, CSRF, honeypot, envoi email et redirection vers la page courante.
 
+**Récapitulatif d'erreurs (optionnel)** — en tête du formulaire, en plus des messages sous chaque champ :
+
+```php
+// Global
+'errorsSummary' => ['enabled' => true],
+
+// Ou par formulaire
+'contact' => [
+    'errorsSummary' => true,
+    // …
+],
+
+// Ou à l'affichage
+snippet('form-page', ['formKey' => 'contact', 'errorsSummary' => true]);
+```
+
+Snippet dédié : `form-errors-summary`. Styles → [docs/style.md](docs/style.md).
+
 ### 3. Personnaliser l'email (optionnel)
 
 Le template email par défaut (`emails/submition.html`) se personnalise **sans modifier le HTML** via `defaultEmailTheme` (global) et `email.theme` (par formulaire).

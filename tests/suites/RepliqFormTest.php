@@ -281,4 +281,95 @@ final class RepliqFormTest extends TestCase
         $guard->perform();
         $this->assertTrue(true);
     }
+
+    public function testBuildErrorsSummaryReturnsEmptyWhenNoErrors(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'message' => 'Bonjour',
+            'website' => '',
+        ]));
+
+        $this->assertSame([], RepliqForm::buildErrorsSummary($form, 'contact'));
+    }
+
+    public function testBuildErrorsSummaryListsFieldErrorsWithLabels(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => 'Jane Doe',
+            'email' => 'not-an-email',
+            'message' => 'Bonjour',
+            'website' => '',
+        ]));
+
+        $summary = RepliqForm::buildErrorsSummary($form, 'contact');
+
+        $this->assertCount(1, $summary);
+        $this->assertSame('email', $summary[0]['id']);
+        $this->assertSame('Email', $summary[0]['label']);
+        $this->assertNotEmpty($summary[0]['messages']);
+    }
+
+    public function testBuildErrorsSummarySkipsHoneypotFieldKey(): void
+    {
+        $config = RepliqForm::buildConfig('contact');
+        $this->assertNotNull($config);
+
+        $form = new \Uniform\Form([]);
+        $honeypotField = RepliqForm::resolveHoneypotField($config['fields']);
+        $this->assertNotNull($honeypotField);
+
+        $reflection = new \ReflectionClass($form);
+        $prop = $reflection->getProperty('errors');
+        $prop->setAccessible(true);
+        $prop->setValue($form, [
+            'email' => ['Email invalide'],
+            $honeypotField => ['Spam détecté'],
+        ]);
+
+        $summary = RepliqForm::buildErrorsSummary($form, 'contact');
+
+        $this->assertCount(1, $summary);
+        $this->assertSame('email', $summary[0]['id']);
+    }
+
+    public function testResolveErrorsSummarySettingUsesGlobalByDefault(): void
+    {
+        $setting = RepliqForm::resolveErrorsSummarySetting('contact');
+
+        $this->assertFalse($setting['enabled']);
+        $this->assertSame('Le formulaire contient des erreurs', $setting['title']);
+    }
+
+    public function testResolveErrorsSummarySettingHonorsSnippetOverride(): void
+    {
+        $setting = RepliqForm::resolveErrorsSummarySetting('contact', true);
+
+        $this->assertTrue($setting['enabled']);
+    }
+
+    public function testErrorsSummarySnippetRendersAccessibleMarkup(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => '',
+            'email' => 'not-an-email',
+            'message' => '',
+            'website' => '',
+        ]));
+
+        ob_start();
+        snippet('form-errors-summary', [
+            'form' => $form,
+            'formKey' => 'contact',
+            'title' => 'Corrigez les champs suivants',
+        ]);
+        $html = (string) ob_get_clean();
+
+        $this->assertStringContainsString('form-errors-summary', $html);
+        $this->assertStringContainsString('role="alert"', $html);
+        $this->assertStringContainsString('Corrigez les champs suivants', $html);
+        $this->assertStringContainsString('href="#email"', $html);
+        $this->assertStringContainsString('Email', $html);
+    }
 }

@@ -10,6 +10,7 @@
 
 # Kirby dev install (tests)
 /kirby
+/site/sessions
 /site/plugins/kirby-uniform
 /site/plugins/kirby-form
 /site/plugins/kirby-flash

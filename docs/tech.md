@@ -45,6 +45,7 @@ Fichier : `index.php`
 |-----------------|---------|------|
 | `repliq\RepliqForm` | `classes/form.php` | Config, règles, submit, `optionsFrom`, `toFrom` |
 | `repliq\RepliqFilterState` | `classes/filter-state.php` | État GET (mode filter) |
+| `repliq\RepliqPreviewState` | `classes/preview-state.php` | État factice (`old`/`error`/`success`) pour le styleguide |
 | `repliq_form()` | `helpers.php` | API publique de rendu |
 
 ## Modes
@@ -217,6 +218,18 @@ Pré-remplit les champs via `get()`. Pas de validation serveur.
 3. Boucle `RepliqForm::getInputs($form)`
 
 Snippets utilitaires : `form-label`, `form-info`, `form-field-errors`, `form-errors-summary`.
+
+### `form-styleguide`
+
+Page de référence visuelle : rend chaque composant dans tous ses états en réutilisant les vrais snippets de champs.
+
+| Paramètre | Défaut |
+|-----------|--------|
+| `formClass` | `repliq-form-styleguide` |
+| `states` | `['default', 'filled', 'error', 'filled_error', 'required']` |
+| `showLabels` | `true` |
+
+N'utilise **ni config, ni `repliq_form()`, ni soumission** : un objet `repliq\RepliqPreviewState` injecte des valeurs `old()` et des messages `error()` prédéfinis par id de champ, de sorte que les snippets de champs s'affichent dans l'état voulu. Rend aussi la carte de succès `.form-success`, le récap `form-errors-summary` et les composants décoratifs. Usage et classes → [style.md](style.md#styleguide-prévisualisation-des-états).
 
 ## Soumission POST
 
@@ -479,6 +492,7 @@ index.php
 helpers.php
 classes/form.php
 classes/filter-state.php
+classes/preview-state.php
 docs/
   README.md
   inputs.md
@@ -488,6 +502,7 @@ snippets/
   form-page.php
   form-filter.php
   form-fields.php
+  form-styleguide.php
   form-csrf-refresh.php
   form-honeytime-refresh.php
   fields/

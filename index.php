@@ -3,6 +3,7 @@
 load([
     'repliq\\RepliqFilterState' => '/classes/filter-state.php',
     'repliq\\RepliqForm' => '/classes/form.php',
+    'repliq\\RepliqPreviewState' => '/classes/preview-state.php',
 ], __DIR__);
 
 require_once __DIR__ . '/helpers.php';
@@ -125,6 +126,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-page' => __DIR__ . '/snippets/form-page.php',
         'form-filter' => __DIR__ . '/snippets/form-filter.php',
         'form-fields' => __DIR__ . '/snippets/form-fields.php',
+        'form-styleguide' => __DIR__ . '/snippets/form-styleguide.php',
         'form-errors-summary' => __DIR__ . '/snippets/form-errors-summary.php',
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',

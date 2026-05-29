@@ -12,6 +12,7 @@ Guide pour styler les formulaires du plugin. Le plugin **ne fournit pas de CSS**
 **Sommaire**
 
 - [Principe](#principe)
+- [Styleguide (prévisualisation des états)](#styleguide-prévisualisation-des-états)
 - [Cibler un formulaire](#cibler-un-formulaire)
 - [Arborescence HTML](#arborescence-html)
 - [Référence des classes](#référence-des-classes)
@@ -30,6 +31,59 @@ Guide pour styler les formulaires du plugin. Le plugin **ne fournit pas de CSS**
 2. **Une classe par formulaire** — via `formClass` pour isoler le scope CSS.
 3. **États explicites** — la classe `.error` est ajoutée sur le conteneur du champ ou du groupe en cas d'erreur de validation.
 4. **Pas de framework imposé** — Tailwind, SCSS, CSS natif : tout fonctionne tant que vous ciblez les bonnes classes.
+
+---
+
+## Styleguide (prévisualisation des états)
+
+Le snippet `form-styleguide` génère une page de référence affichant **chaque composant dans tous ses états** (vide, pré-rempli, en erreur, requis…). Il réutilise les **vrais snippets de champs** : le markup est donc strictement identique à celui de vos formulaires, ce qui en fait l'outil idéal pour calibrer votre CSS.
+
+Placez-le sur une page de développement (template, snippet ou block) :
+
+```php
+<?php snippet('form-styleguide') ?>
+```
+
+### Ce qui est rendu
+
+| Bloc | Contenu |
+|------|---------|
+| Champs × états | input (texte / email / téléphone), textarea, select, select multiple, checkbox, groupe de cases, groupe de radios — chacun décliné dans tous les états |
+| États post-envoi | carte de succès `.form-success` + récapitulatif d'erreurs `form-errors-summary` |
+| Composants décoratifs | `label`, `info` (`label-desc`), `card`, `line`, `section-title` |
+
+États déclinés par défaut : `default`, `filled`, `error`, `filled_error`, `required`.
+
+### Paramètres
+
+| Paramètre | Défaut | Rôle |
+|-----------|--------|------|
+| `formClass` | `repliq-form-styleguide` | Classe du `<form>` — passez la classe d'un vrai formulaire pour prévisualiser sous votre scope CSS réel |
+| `states` | les 5 états ci-dessus | Sous-ensemble d'états à afficher |
+| `showLabels` | `true` | Affiche le libellé de l'état au-dessus de chaque variante |
+
+```php
+<?php snippet('form-styleguide', [
+    'formClass'  => 'repliq-form-contact', // calibrer sous vos règles .repliq-form-contact …
+    'states'     => ['default', 'error'],
+    'showLabels' => false,
+]) ?>
+```
+
+### Classes propres au styleguide
+
+Ces classes enveloppent le markup des champs **uniquement dans le styleguide** (préfixe `styleguide-`) ; elles n'existent pas en production et peuvent être ignorées ou masquées :
+
+| Classe | Rôle |
+|--------|------|
+| `styleguide-section` | Conteneur d'une section (un composant) |
+| `styleguide-variant` | Conteneur d'une variante ; attribut `data-state` (ou `data-component`) |
+| `styleguide-state` | Libellé de l'état (`Default`, `Error`…) |
+| `styleguide-note` | Annotation contextuelle |
+
+> Le `<form>` du styleguide porte `onsubmit="return false;"` pour neutraliser tout envoi accidentel. Sous une **CSP stricte** interdisant les handlers inline, surchargez le snippet (`site/snippets/form-styleguide.php`) pour adapter ce point.
+
+Sous le capot, le snippet alimente un objet d'état factice `repliq\RepliqPreviewState` (mêmes méthodes `old()` / `error()` / `success()` que les formulaires réels) — voir [tech.md](tech.md#form-styleguide).
 
 ---
 

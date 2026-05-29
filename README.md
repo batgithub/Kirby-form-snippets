@@ -237,6 +237,7 @@ Scénarios complets (Panel, controller, tags…) → [docs/examples.md](docs/exa
 | Overrides depuis un controller | [docs/examples.md](docs/examples.md#options-depuis-un-controller) |
 | Markup HTML personnalisé | [docs/examples.md](docs/examples.md#markup-personnalisé) |
 | Personnalisation CSS | [docs/style.md](docs/style.md) |
+| Prévisualiser tous les champs et états (styleguide) | [docs/style.md](docs/style.md#styleguide-prévisualisation-des-états) |
 | Personnalisation email (thème, logo, couleurs) | [docs/tech.md](docs/tech.md#template-email) |
 | Honeytime (soumission trop rapide) | [docs/inputs.md](docs/inputs.md#honeytime--anti-spam-par-délai) |
 | Cache des pages + formulaires | [docs/tech.md](docs/tech.md#cache) |

@@ -337,6 +337,74 @@ final class RepliqFormTest extends TestCase
         $this->assertSame('email', $summary[0]['id']);
     }
 
+    public function testBuildSubmitErrorsSkipsVisibleFieldValidation(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => '',
+            'email' => 'not-an-email',
+            'message' => '',
+            'website' => '',
+        ]));
+
+        $errors = RepliqForm::buildSubmitErrors($form, 'contact');
+
+        $this->assertSame([], $errors);
+    }
+
+    public function testBuildSubmitErrorsIncludesHoneypotFailure(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'message' => 'Bonjour',
+            'website' => 'https://spam.example',
+        ]));
+
+        $errors = RepliqForm::buildSubmitErrors($form, 'contact');
+
+        $this->assertSame([RepliqForm::spamGuardMessage()], $errors);
+        $this->assertStringNotContainsString('patienter', $errors[0]);
+        $this->assertStringNotContainsString('honeypot', strtolower($errors[0]));
+    }
+
+    public function testBuildSubmitErrorsUsesGenericMessageOnHoneytimeFailure(): void
+    {
+        $config = RepliqForm::buildConfig('honeytime');
+        $this->assertNotNull($config);
+
+        $form = $this->runSubmitPipeline('honeytime', $this->postWithCsrf(array_merge([
+            'email' => 'jane@example.com',
+        ], [
+            (string) option('baptiste.kirby-form-snippets.honeytime.field') => HoneytimeGuard::encrypt(
+                (string) RepliqForm::resolveHoneytimeGuardOptions($config)['key'],
+                (string) time()
+            ),
+        ])));
+
+        $errors = RepliqForm::buildSubmitErrors($form, 'honeytime');
+
+        $this->assertSame([RepliqForm::spamGuardMessage()], $errors);
+    }
+
+    public function testSubmitErrorSnippetRendersAccessibleMarkup(): void
+    {
+        $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'message' => 'Bonjour',
+            'website' => 'https://spam.example',
+        ]));
+
+        $messages = RepliqForm::buildSubmitErrors($form, 'contact');
+
+        ob_start();
+        snippet('form-submit-error', ['messages' => $messages]);
+        $html = (string) ob_get_clean();
+
+        $this->assertStringContainsString('form-submit-error', $html);
+        $this->assertStringContainsString('role="alert"', $html);
+    }
+
     public function testResolveErrorsSummarySettingUsesGlobalByDefault(): void
     {
         $setting = RepliqForm::resolveErrorsSummarySetting('contact');

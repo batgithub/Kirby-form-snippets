@@ -30,6 +30,32 @@ final class HtmxIntegrationTest extends TestCase
         $output = $response->body();
         $this->assertStringContainsString('repliq-form-container', $output);
         $this->assertStringContainsString('notif error', $output);
+        $this->assertSame(422, $response->code());
+    }
+
+    public function testHtmxSubmitShowsSubmitErrorOnHoneypotFailure(): void
+    {
+        $route = (string) option('baptiste.kirby-form-snippets.submit.route');
+        $this->simulateRequest(
+            'POST',
+            $this->postWithCsrf([
+                'name' => 'Jane Doe',
+                'email' => 'jane@example.com',
+                'message' => 'Spam',
+                'website' => 'https://spam.example',
+            ]),
+            '/' . $route . '/contact',
+            ['HX-Request' => 'true']
+        );
+
+        $response = RepliqForm::handleSubmit('contact');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(422, $response->code());
+        $output = $response->body();
+        $this->assertStringContainsString('form-submit-error', $output);
+        $this->assertStringContainsString(RepliqForm::spamGuardMessage(), $output);
+        $this->assertStringNotContainsString('patienter', $output);
     }
 
     public function testHtmxSubmitReturnsSuccessMessageOnValidPost(): void

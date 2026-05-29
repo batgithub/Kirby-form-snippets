@@ -226,15 +226,16 @@ class RepliqForm
             ],
         ], true);
 
-        return new Response((string) $html, 'text/html');
+        $status = $form->success() ? 200 : 422;
+
+        return new Response((string) $html, 'text/html', $status);
     }
 
     private static function flashFormDataForRender(Form $form): void
     {
-        Flash::getInstance()->set(
-            BaseForm::FLASH_KEY_DATA,
-            $form->data('', '', false)
-        );
+        $flash = Flash::getInstance();
+        $flash->set(BaseForm::FLASH_KEY_DATA, $form->data('', '', false));
+        $flash->set(BaseForm::FLASH_KEY_ERRORS, $form->errors());
     }
 
     /**
@@ -529,6 +530,127 @@ class RepliqForm
         }
 
         return $items;
+    }
+
+    /**
+     * Erreurs non rattachées à un champ visible (échec d'envoi, honeypot, CSRF, etc.).
+     *
+     * @param object $form
+     * @param array<string, mixed> $overrides
+     * @return list<string>
+     */
+    public static function spamGuardMessage(): string
+    {
+        $message = option('baptiste.kirby-form-snippets.messages.spam');
+
+        if (is_string($message) && $message !== '') {
+            return $message;
+        }
+
+        return (string) option('baptiste.kirby-form-snippets.messages.honeypot');
+    }
+
+    public static function buildSubmitErrors(
+        object $form,
+        string $formKey,
+        array $overrides = []
+    ): array {
+        if (!method_exists($form, 'errors') || count($form->errors()) === 0) {
+            return [];
+        }
+
+        $config = self::buildConfig($formKey, $overrides, 'render');
+
+        if ($config === null) {
+            return [];
+        }
+
+        $fields = is_array($config['fields'] ?? null) ? $config['fields'] : [];
+        $messages = [];
+
+        foreach ($form->errors() as $fieldKey => $fieldMessages) {
+            if (!is_string($fieldKey) || !is_array($fieldMessages) || $fieldMessages === []) {
+                continue;
+            }
+
+            if (self::isSurfaceFieldError($fieldKey, $fields, $config)) {
+                continue;
+            }
+
+            if (self::isSpamGuardErrorKey($fieldKey, $fields, $config)) {
+                $messages[] = self::spamGuardMessage();
+                continue;
+            }
+
+            foreach ($fieldMessages as $message) {
+                $text = self::normalizeSubmitErrorMessage((string) $message);
+
+                if ($text !== '') {
+                    $messages[] = $text;
+                }
+            }
+        }
+
+        return array_values(array_unique($messages));
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param array<string, mixed> $config
+     */
+    private static function isSpamGuardErrorKey(string $fieldKey, array $fields, array $config): bool
+    {
+        $honeypot = self::resolveHoneypotField($fields);
+
+        if ($honeypot !== null && $fieldKey === $honeypot) {
+            return true;
+        }
+
+        $honeytime = self::resolveHoneytimeGuardOptions($config);
+
+        if ($honeytime !== null && $fieldKey === $honeytime['field']) {
+            return true;
+        }
+
+        return str_contains($fieldKey, 'HoneypotGuard') || str_contains($fieldKey, 'HoneytimeGuard');
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param array<string, mixed> $config
+     */
+    private static function isSurfaceFieldError(string $fieldKey, array $fields, array $config): bool
+    {
+        if (in_array($fieldKey, self::errorsSummarySkipKeys($config), true)) {
+            return false;
+        }
+
+        $field = $fields[$fieldKey] ?? null;
+
+        if (!is_array($field)) {
+            return false;
+        }
+
+        if (self::isDecorativeFieldInput($field['input'] ?? null)) {
+            return false;
+        }
+
+        if (($field['input'] ?? null) === 'honeypot') {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static function normalizeSubmitErrorMessage(string $message): string
+    {
+        $message = trim($message);
+
+        if ($message === '') {
+            return (string) option('baptiste.kirby-form-snippets.messages.submit');
+        }
+
+        return $message;
     }
 
     /**

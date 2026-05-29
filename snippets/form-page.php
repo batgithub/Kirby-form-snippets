@@ -27,6 +27,11 @@ $htmxSetting = RepliqForm::resolveHtmxSetting(
     isset($htmx) ? $htmx : null
 );
 $containerId = RepliqForm::htmxContainerId((string) $formKey);
+$submitErrors = RepliqForm::buildSubmitErrors(
+    $form,
+    (string) $formKey,
+    $overrides ?? []
+);
 
 if ($htmxSetting['enabled'] && $htmxSetting['loadScript'] && !RepliqForm::isHtmxScriptLoaded()) {
     snippet('form-htmx-script', ['htmx' => $htmxSetting]);
@@ -47,6 +52,10 @@ if ($htmxSetting['enabled'] && $htmxSetting['loadScript'] && !RepliqForm::isHtmx
             method="post"
             <?= attr(RepliqForm::htmxFormAttributes($htmxSetting, $formAction)) ?>
         >
+            <?php if ($submitErrors !== []): ?>
+                <?php snippet('form-submit-error', ['messages' => $submitErrors]) ?>
+            <?php endif ?>
+
             <?php if ($errorsSummarySetting['enabled']): ?>
                 <?php snippet('form-errors-summary', [
                     'form' => $form,

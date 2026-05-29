@@ -34,10 +34,12 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
             'tel' => 'Veuillez entrer un format de téléphone valide.',
             'maxLengthInput' => 'Votre réponse est limitée à 1000 caractères',
             'maxLengthTextarea' => 'Votre réponse est limitée à 3000 caractères',
-            'honeypot' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
-            'honeytime' => 'Merci de patienter quelques secondes avant d\'envoyer le formulaire.',
-            'honeytimeInvalid' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
+            'spam' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
+            'honeypot' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
+            'honeytime' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
+            'honeytimeInvalid' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
             'in' => 'La valeur selectionnée n\'est pas valide',
+            'submit' => 'L\'envoi du formulaire a échoué. Veuillez réessayer ou nous contacter directement.',
         ],
         'errorsSummary' => [
             'enabled' => false,
@@ -128,6 +130,7 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
         'form-fields' => __DIR__ . '/snippets/form-fields.php',
         'form-styleguide' => __DIR__ . '/snippets/form-styleguide.php',
         'form-errors-summary' => __DIR__ . '/snippets/form-errors-summary.php',
+        'form-submit-error' => __DIR__ . '/snippets/form-submit-error.php',
         'form-input' => __DIR__ . '/snippets/fields/input.php',
         'form-textarea' => __DIR__ . '/snippets/fields/textarea.php',
         'form-checkbox' => __DIR__ . '/snippets/fields/checkbox.php',
@@ -151,8 +154,10 @@ Kirby::plugin('baptiste/kirby-form-snippets', [
     ],
     'translations' => [
         'fr' => [
-            'uniform-honeytime-reject' => 'Merci de patienter quelques secondes avant d\'envoyer le formulaire.',
-            'uniform-honeytime-invalid' => 'Ouups, quelque chose s\'est mal passé. Si le problème persiste contactez moi par mail directement',
+            'uniform-email-error' => 'L\'envoi du message a échoué',
+            'uniform-filled-potty' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
+            'uniform-honeytime-reject' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
+            'uniform-honeytime-invalid' => 'Oups, l\'envoi n\'a pas abouti. Si le problème persiste, contactez-nous par e-mail.',
         ],
     ],
 ]);

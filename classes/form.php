@@ -1524,8 +1524,39 @@ class RepliqForm
             return;
         }
 
-        $rules['in'] = $values;
+        // Jevets Validator passes rule options to V::* after array_unshift($options, $value).
+        // The allowed list must stay a single argument: wrap scalars as [$values].
+        // Multi-value fields (checkbox-group, multiselect) submit arrays; validate each item.
+        if ($this->submitsMultipleValues($input)) {
+            $rules['callback'] = static function ($value) use ($values): bool {
+                if (!is_array($value)) {
+                    $value = ($value === null || $value === '') ? [] : [$value];
+                }
+
+                foreach ($value as $item) {
+                    if (!in_array($item, $values, true)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+        } else {
+            $rules['in'] = [$values];
+        }
+
         $messages[] = $this->message('in');
+    }
+
+    private function submitsMultipleValues(array $input): bool
+    {
+        if (($input['input'] ?? '') === 'checkbox-group') {
+            return true;
+        }
+
+        return ($input['input'] ?? '') === 'select'
+            && isset($input['multiselect'])
+            && $input['multiselect'] === true;
     }
 
     private function rulesForInput(array $input): array

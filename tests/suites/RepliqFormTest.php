@@ -123,13 +123,68 @@ final class RepliqFormTest extends TestCase
 
         $this->assertContains('required', $rules['topic']['rules']);
         $this->assertArrayHasKey('in', $rules['topic']['rules']);
-        $this->assertSame(['support', 'sales'], $rules['topic']['rules']['in']);
+        $this->assertSame([['support', 'sales']], $rules['topic']['rules']['in']);
         $this->assertContains('notEmpty', $rules['tags']['rules']);
-        $this->assertArrayHasKey('in', $rules['tags']['rules']);
+        $this->assertArrayHasKey('callback', $rules['tags']['rules']);
         $this->assertContains('required', $rules['plan']['rules']);
         $this->assertArrayHasKey('in', $rules['plan']['rules']);
-        $this->assertSame(['basic', 'pro'], $rules['plan']['rules']['in']);
+        $this->assertSame([['basic', 'pro']], $rules['plan']['rules']['in']);
         $this->assertContains('required', $rules['consent']['rules']);
+    }
+
+    public function testValidationRulesAcceptValidSelectCheckboxAndRadioData(): void
+    {
+        $config = RepliqForm::buildConfig('options');
+        $this->assertNotNull($config);
+
+        $formConfig = new RepliqForm($config['fields']);
+        $rules = $formConfig->getRules();
+        $data = [
+            'topic' => 'support',
+            'tags' => ['php', 'kirby'],
+            'plan' => 'basic',
+            'consent' => 'on',
+        ];
+
+        $messages = [];
+        $ruleSets = [];
+
+        foreach ($rules as $field => $fieldRules) {
+            $ruleSets[$field] = $fieldRules['rules'];
+            $messages[$field] = $fieldRules['message'];
+        }
+
+        $validator = new Validator($data, $ruleSets, $messages);
+
+        $this->assertSame([], $validator->validate());
+    }
+
+    public function testValidationRulesRejectInvalidSelectValue(): void
+    {
+        $config = RepliqForm::buildConfig('options');
+        $this->assertNotNull($config);
+
+        $formConfig = new RepliqForm($config['fields']);
+        $rules = $formConfig->getRules();
+        $data = [
+            'topic' => 'invalid',
+            'tags' => ['php'],
+            'plan' => 'basic',
+            'consent' => 'on',
+        ];
+
+        $messages = [];
+        $ruleSets = [];
+
+        foreach ($rules as $field => $fieldRules) {
+            $ruleSets[$field] = $fieldRules['rules'];
+            $messages[$field] = $fieldRules['message'];
+        }
+
+        $validator = new Validator($data, $ruleSets, $messages);
+        $errors = $validator->validate();
+
+        $this->assertArrayHasKey('topic', $errors);
     }
 
     public function testResolveHoneytimeGuardOptionsDisabledByDefault(): void

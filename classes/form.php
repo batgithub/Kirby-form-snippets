@@ -226,7 +226,7 @@ class RepliqForm
             ],
         ], true);
 
-        return Response::html((string) $html);
+        return new Response((string) $html, 'text/html');
     }
 
     private static function flashFormDataForRender(Form $form): void

@@ -30,6 +30,8 @@ Ajoutez dans `site/config/config.php` :
 
 Ces routes ne doivent **pas** être mises en cache : elles servent au rafraîchissement JS du token CSRF et du timestamp Honeytime (compatible avec le cache des pages). Détail → [docs/tech.md](docs/tech.md#cache).
 
+> Si un script de votre site rafraîchit déjà le token CSRF sur tous les `<form>`, excluez-en les formulaires du plugin (attribut `data-repliq-form`) pour éviter une `TokenMismatchException`. Détail → [docs/tech.md](docs/tech.md#csrf).
+
 ## Démarrage rapide
 
 ### 1. Déclarer le formulaire

@@ -358,6 +358,8 @@ Si un CDN cache le HTML des pages malgré Kirby, vérifiez que les routes `kirby
 
 Route GET → `{ "token": "…" }`. `form-csrf-refresh` met à jour les champs hidden (important si plusieurs formulaires : `formSelector` unique par instance).
 
+> **Attention — un seul rafraîchisseur de token par formulaire.** Le token CSRF de la session est unique : si un script externe (ex. un `site.js` qui rafraîchit le token sur tous les `<form>`) cible aussi les formulaires du plugin, les deux refresh s'écrasent mutuellement et le formulaire peut envoyer un token périmé → `TokenMismatchException` (affichée en 500 si `debug => true`). Les formulaires du plugin portent l'attribut `data-repliq-form` ; excluez-les de tout script de refresh CSRF externe (ex. `form:not([data-repliq-form] form)`) et laissez le plugin gérer leur token.
+
 ## Hook `repliq.form.config`
 
 ```php

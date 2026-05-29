@@ -500,7 +500,7 @@ templates/emails/submition.html.php
 
 ## Dépendances
 
-- Kirby 3.5+ / 4 / 5
+- Kirby 5 (PHP 8.2+)
 - `mzur/kirby-uniform` ^5.0
 - `getkirby/composer-installer`
 

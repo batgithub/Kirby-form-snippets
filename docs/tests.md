@@ -13,7 +13,7 @@ Suite PHPUnit pour éviter les régressions sur la logique métier, les guards a
 composer install
 ```
 
-Les dépendances de développement (`getkirby/cms`, `phpunit/phpunit`, `mzur/kirby-uniform`) ne sont pas requises en production. Elles installent aussi Kirby dans `kirby/` et Uniform dans `site/plugins/`.
+`getkirby/cms` (^5.0) est déclaré dans `require` : il fixe le plancher de compatibilité Kirby 5 et est installé localement dans `kirby/` pour la suite monolithique. Les dépendances de développement (`phpunit/phpunit`, `mzur/kirby-uniform`) ne sont pas requises en production ; `mzur/kirby-uniform` s'installe dans `site/plugins/`.
 
 ## Lancer les tests
 

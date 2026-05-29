@@ -4,7 +4,8 @@ Formulaires Kirby **sans contrôleur de page** : déclarez une config, passez un
 
 ## Prérequis
 
-- Kirby 3.5+, 4 ou 5
+- Kirby 5
+- PHP 8.2+
 - [mzur/kirby-uniform](https://github.com/mzur/kirby-uniform) ^5.0
 - Configuration email Kirby ([guide](https://getkirby.com/docs/guide/emails))
 

@@ -14,13 +14,14 @@
         "installer-name": "kirby-form-snippets"
     },
     "require": {
+        "php": ">=8.2",
+        "getkirby/cms": "^5.0",
         "getkirby/composer-installer": "^1.1"
     },
     "suggest": {
         "mzur/kirby-uniform": "Required for form validation and submission (^5.0)"
     },
     "require-dev": {
-        "getkirby/cms": "^5.0",
         "phpunit/phpunit": "^11.0",
         "mzur/kirby-uniform": "^5.0"
     },

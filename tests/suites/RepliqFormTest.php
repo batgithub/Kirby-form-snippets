@@ -122,10 +122,13 @@ final class RepliqFormTest extends TestCase
         $rules = $formConfig->getRules();
 
         $this->assertContains('required', $rules['topic']['rules']);
-        $this->assertContains('in:support,sales', $rules['topic']['rules']);
+        $this->assertArrayHasKey('in', $rules['topic']['rules']);
+        $this->assertSame(['support', 'sales'], $rules['topic']['rules']['in']);
         $this->assertContains('notEmpty', $rules['tags']['rules']);
         $this->assertArrayHasKey('in', $rules['tags']['rules']);
         $this->assertContains('required', $rules['plan']['rules']);
+        $this->assertArrayHasKey('in', $rules['plan']['rules']);
+        $this->assertSame(['basic', 'pro'], $rules['plan']['rules']['in']);
         $this->assertContains('required', $rules['consent']['rules']);
     }
 

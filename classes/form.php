@@ -1463,16 +1463,7 @@ class RepliqForm
             $inputMessages[] = $this->message('requiredSelect');
         }
 
-        if ($multiselect) {
-            $this->appendInRule($inputRules, $inputMessages, $input);
-        } elseif (isset($input['options']) && is_array($input['options'])) {
-            $values = $this->optionValues($input['options']);
-
-            if ($values !== []) {
-                $inputRules[] = 'in:' . implode(',', $values);
-                $inputMessages[] = $this->message('in');
-            }
-        }
+        $this->appendInRule($inputRules, $inputMessages, $input);
 
         return $this->ruleSet($inputRules, $inputMessages);
     }
@@ -1514,13 +1505,7 @@ class RepliqForm
             $inputMessages[] = $this->message('requiredRadioGroup');
         }
 
-        if (isset($input['options']) && is_array($input['options'])) {
-            $values = $this->optionValues($input['options']);
-            if ($values !== []) {
-                $inputRules[] = 'in:' . implode(',', $values);
-                $inputMessages[] = $this->message('in');
-            }
-        }
+        $this->appendInRule($inputRules, $inputMessages, $input);
 
         return $this->ruleSet($inputRules, $inputMessages);
     }

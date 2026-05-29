@@ -115,11 +115,11 @@ Règles générées par `RepliqForm::getRules()` :
 |---------|--------|
 | `input` | `required`, `email`, `tel`, `maxLength` |
 | `textarea` | `required`, `maxLength` |
-| `select` | `required`, `in:…` |
-| `select` (multiselect) | `notEmpty`, `in:…` (tableau) |
-| `radio-group` | `required`, `in:…` |
+| `select` | `required`, `in` (liste de valeurs autorisées) |
+| `select` (multiselect) | `notEmpty`, `in` (liste de valeurs autorisées) |
+| `radio-group` | `required`, `in` (liste de valeurs autorisées) |
 | `checkbox` | `required` si obligatoire |
-| `checkbox-group` | `notEmpty` si obligatoire, `in:…` |
+| `checkbox-group` | `notEmpty` si obligatoire, `in` (liste de valeurs autorisées) |
 | `honeypot` | `HoneypotGuard` Uniform (voir soumission POST) |
 | `line`, `card`, `section-title` | aucune |
 

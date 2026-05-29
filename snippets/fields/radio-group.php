@@ -14,7 +14,7 @@
     >
         <legend>
             <?= html($label) ?>
-            <?= ($required === true) ? '<abbr title="requis">*</abbr>' : '' ?>
+            <?= ($isRequired === true) ? '<abbr title="requis">*</abbr>' : '' ?>
         </legend>
         <?php foreach ($options as $option): ?>
             <?php $optionValue = RepliqForm::optionValue($option); ?>

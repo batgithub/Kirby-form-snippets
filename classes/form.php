@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace repliq;
 
+use Jevets\Kirby\Exceptions\TokenMismatchException;
 use Jevets\Kirby\Flash;
 use Jevets\Kirby\Form as BaseForm;
 use Kirby\Cms\Page;
 use Kirby\Cms\StructureObject;
 use Kirby\Http\Response;
+use Kirby\Http\Url;
 use Kirby\Toolkit\Str;
+use Throwable;
 use Uniform\Form;
 use Uniform\Guards\HoneytimeGuard;
 
 class RepliqForm
 {
+    private const SUBMIT_ERROR_KEY = '_submit';
+
     private static bool $htmxScriptLoaded = false;
 
     /** @var list<string> */
@@ -90,30 +95,96 @@ class RepliqForm
 
         $formConfig = new self($config['fields']);
         $form = new Form($formConfig->getRules());
-        $pipeline = self::applySpamGuards($form, $config);
 
-        $email = is_array($config['email'] ?? null) ? $config['email'] : [];
-        $emailConfig = self::resolveEmailConfig($email, $key);
-        $emailConfig['data'] = array_merge(
-            $formConfig->buildEmailData($form, $config, $key),
-            is_array($emailConfig['data'] ?? null) ? $emailConfig['data'] : []
-        );
+        try {
+            $pipeline = self::applySpamGuards($form, $config);
 
-        unset($emailConfig['theme'], $emailConfig['themeFrom'], $emailConfig['templateData']);
+            $email = is_array($config['email'] ?? null) ? $config['email'] : [];
+            $emailConfig = self::resolveEmailConfig($email, $key);
+            $emailConfig['data'] = array_merge(
+                $formConfig->buildEmailData($form, $config, $key),
+                is_array($emailConfig['data'] ?? null) ? $emailConfig['data'] : []
+            );
 
-        if (self::isHtmxRequest()) {
-            $pipeline
-                ->withoutRedirect()
-                ->withoutFlashing()
-                ->emailAction($emailConfig)
-                ->done();
+            unset($emailConfig['theme'], $emailConfig['themeFrom'], $emailConfig['templateData']);
 
-            return self::respondHtmx($key, $pipeline, $config);
+            if (self::isHtmxRequest()) {
+                $pipeline
+                    ->withoutRedirect()
+                    ->withoutFlashing()
+                    ->emailAction($emailConfig)
+                    ->done();
+
+                return self::respondHtmx($key, $pipeline, $config);
+            }
+
+            $pipeline->emailAction($emailConfig)->done();
+        } catch (TokenMismatchException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            return self::handleSubmitException($key, $config, $form, $e);
         }
 
-        $pipeline->emailAction($emailConfig)->done();
+        return null;
+    }
+
+    public static function submitErrorMessage(): string
+    {
+        $message = option('baptiste.kirby-form-snippets.messages.submit');
+
+        if (is_string($message) && $message !== '') {
+            return $message;
+        }
+
+        return 'L\'envoi du formulaire a échoué. Veuillez réessayer ou nous contacter directement.';
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function handleSubmitException(
+        string $key,
+        array $config,
+        Form $form,
+        Throwable $e
+    ): ?Response {
+        self::logSubmitException($key, $e);
+        self::flashSubmitFailure($config, $form);
+
+        $formConfig = new self($config['fields']);
+        $failedForm = new Form($formConfig->getRules());
+
+        if (self::isHtmxRequest()) {
+            return self::respondHtmx($key, $failedForm, $config);
+        }
+
+        go(Url::last());
 
         return null;
+    }
+
+    private static function logSubmitException(string $formKey, Throwable $e): void
+    {
+        error_log(sprintf(
+            '[kirby-form-snippets] Form submit failed (%s): %s in %s:%d',
+            $formKey,
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine()
+        ));
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function flashSubmitFailure(array $config, Form $form): void
+    {
+        $flash = Flash::getInstance();
+        $flash->set(BaseForm::FLASH_KEY_ERRORS, [
+            self::SUBMIT_ERROR_KEY => [self::submitErrorMessage()],
+        ]);
+        $flash->set(Form::FLASH_KEY_SUCCESS, false);
+        $flash->set(BaseForm::FLASH_KEY_DATA, $form->data('', '', false));
     }
 
     public static function isHtmxRequest(): bool
@@ -646,11 +717,34 @@ class RepliqForm
     {
         $message = trim($message);
 
-        if ($message === '') {
-            return (string) option('baptiste.kirby-form-snippets.messages.submit');
+        if ($message === '' || self::isTechnicalErrorMessage($message)) {
+            return self::submitErrorMessage();
         }
 
         return $message;
+    }
+
+    private static function isTechnicalErrorMessage(string $message): bool
+    {
+        $patterns = [
+            '/\bTypeError\b/',
+            '/\bArgument #\d+/',
+            '/must be of type\b/i',
+            '/\bFatal error\b/i',
+            '/\bStack trace\b/i',
+            '/\{closure\}\(\)/',
+            '/\\\\Toolkit\\\\/',
+            '/\bon line \d+\b/i',
+            '/\{kirby\}/',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

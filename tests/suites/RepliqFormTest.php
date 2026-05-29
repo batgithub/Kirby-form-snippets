@@ -441,6 +441,66 @@ final class RepliqFormTest extends TestCase
         $this->assertSame([RepliqForm::spamGuardMessage()], $errors);
     }
 
+    public function testBuildSubmitErrorsSanitizesTechnicalExceptionMessage(): void
+    {
+        $config = RepliqForm::buildConfig('contact');
+        $this->assertNotNull($config);
+
+        $formConfig = new RepliqForm($config['fields']);
+        $form = new \Uniform\Form($formConfig->getRules());
+
+        $reflection = new \ReflectionClass($form);
+        $property = $reflection->getProperty('errors');
+        $property->setAccessible(true);
+        $property->setValue($form, [
+            '_submit' => [
+                'Kirby\Toolkit\{closure}(): Argument #2 ($in) must be of type array, string given',
+            ],
+        ]);
+
+        $errors = RepliqForm::buildSubmitErrors($form, 'contact');
+
+        $this->assertSame([RepliqForm::submitErrorMessage()], $errors);
+        $this->assertStringNotContainsString('TypeError', $errors[0]);
+        $this->assertStringNotContainsString('Argument #2', $errors[0]);
+    }
+
+    public function testFormPageShowsGenericSubmitErrorInsteadOfTechnicalMessage(): void
+    {
+        $config = RepliqForm::buildConfig('contact');
+        $this->assertNotNull($config);
+
+        $formConfig = new RepliqForm($config['fields']);
+        $form = new \Uniform\Form($formConfig->getRules());
+
+        $reflection = new \ReflectionClass($form);
+        $property = $reflection->getProperty('errors');
+        $property->setAccessible(true);
+        $property->setValue($form, [
+            '_submit' => [
+                'Kirby\Toolkit\{closure}(): Argument #2 ($in) must be of type array, string given',
+            ],
+        ]);
+
+        $html = snippet('form-page', [
+            'formKey' => 'contact',
+            'formData' => [
+                'formConfig' => $formConfig,
+                'form' => $form,
+                'formKey' => 'contact',
+                'formAction' => RepliqForm::submitUrl('contact'),
+                'mode' => 'submit',
+                'honeytime' => null,
+            ],
+        ], true);
+
+        $this->assertIsString($html);
+        $this->assertStringContainsString('form-submit-error', $html);
+        $this->assertStringContainsString(RepliqForm::submitErrorMessage(), $html);
+        $this->assertStringNotContainsString('Argument #2', $html);
+        $this->assertStringNotContainsString('must be of type array', $html);
+    }
+
     public function testSubmitErrorSnippetRendersAccessibleMarkup(): void
     {
         $form = $this->runSubmitPipeline('contact', $this->postWithCsrf([

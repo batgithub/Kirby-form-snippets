@@ -445,6 +445,7 @@ Types HTML courants via `type` : `text` (défaut), `email`, `tel`, `phone` (alia
 | `placeholder` | string | option plugin | — |
 | `info` | string | — | — |
 | `pattern` | string | — | HTML uniquement |
+| `inputmode` | string | — | HTML uniquement (clavier mobile : `numeric`, `tel`, `decimal`, `email`…) |
 | `minlength` | int | — | HTML uniquement |
 | `maxlength` | int | — | HTML uniquement (+ limite plugin : 1000 car.) |
 

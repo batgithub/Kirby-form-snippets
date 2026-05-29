@@ -30,6 +30,7 @@
         name="<?= esc($id, 'attr') ?>"
         placeholder="<?= esc($placeholderText, 'attr') ?>"
         <?= isset($pattern) ? 'pattern="' . esc($pattern, 'attr') . '"' : '' ?>
+        <?= isset($inputmode) ? 'inputmode="' . esc($inputmode, 'attr') . '"' : '' ?>
         <?= isset($minlength) ? 'minlength="' . esc($minlength, 'attr') . '"' : '' ?>
         maxlength="<?= esc($maxlengthAttr, 'attr') ?>"
         value="<?= esc($form->old($id), 'attr') ?>"

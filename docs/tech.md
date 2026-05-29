@@ -134,12 +134,51 @@ Règles générées par `RepliqForm::getRules()` :
 | `formData` | — |
 | `formClass` | `repliq-form-{formKey}` |
 | `formSelector` | `.{formClass}` |
-| `submitLabel` | `Envoyer` |
-| `successMessage` | message de remerciement |
+| `submitLabel` | `Envoyer` (voir [résolution](#message-de-succès-et-libellé-du-bouton)) |
+| `successMessage` | message de remerciement (voir [résolution](#message-de-succès-et-libellé-du-bouton)) |
 | `errorsSummary` | — (bool ou `['title' => '…']`) ; sinon option globale / par formulaire |
 | `htmx` | — (bool ou tableau) ; sinon option globale / par formulaire |
 
 Succès Uniform → message ; sinon → `<form method="post" action="{submitUrl}">`. Si le récap d'erreurs est activé, `form-errors-summary` est rendu en tête du `<form>` (en plus des `notif.error` par champ).
+
+#### Message de succès et libellé du bouton
+
+Les textes affichés après envoi réussi (`.form-success`) et sur le bouton submit peuvent venir du snippet, de la config ou d’une option globale. Si le paramètre snippet est absent, `RepliqForm::resolveSuccessMessage()` et `RepliqForm::resolveSubmitLabel()` appliquent cet ordre :
+
+| Priorité | Source | Exemple |
+|----------|--------|---------|
+| 1 | Session (mémorisé au rendu) | Block `contact-form`, template avec `successMessage` explicite |
+| 2 | Config formulaire | `forms.contact.successMessage` |
+| 3 | Option globale plugin | `messages.success`, `submitLabel` |
+| 4 | Défaut plugin | « Merci, votre message a bien été envoyé. » / « Envoyer » |
+
+À chaque rendu de `form-page`, `RepliqForm::rememberFormPresentation()` enregistre les valeurs finales en session. La route `submit` HTMX n’a pas accès au contexte du template ou du block : elle relit ces valeurs pour renvoyer le même message dans le fragment HTML.
+
+**Config formulaire**
+
+```php
+'forms' => [
+    'contact' => [
+        'successMessage' => 'Merci, nous vous répondrons sous 48 h.',
+        'submitLabel' => 'Envoyer le message',
+        'fields' => [ /* … */ ],
+    ],
+],
+```
+
+**Option globale**
+
+```php
+'baptiste.kirby-form-snippets' => [
+    'messages' => [
+        'success' => 'Merci, votre message a bien été envoyé.',
+        // …
+    ],
+    'submitLabel' => 'Envoyer',
+],
+```
+
+Le block Panel `contact-form` passe `successMessage` et `submitLabel` à `form-page` ; ils sont mémorisés automatiquement pour les réponses HTMX.
 
 Le contenu est enveloppé dans `<div id="repliq-form-{formKey}" class="repliq-form-container">` pour permettre le remplacement HTMX.
 
@@ -161,8 +200,22 @@ Soumission AJAX sans JavaScript custom via [htmx](https://htmx.org/). Désactiv�
 
 - Attributs `hx-post`, `hx-target`, `hx-swap` injectés sur le `<form>` quand HTMX est activé.
 - La route `submit` détecte l'en-tête `HX-Request: true` et renvoie un fragment HTML (sans redirection) via `withoutRedirect()` / `withoutFlashing()` Uniform.
+- Le fragment est produit par `RepliqForm::respondHtmx()` : même `form-page` que sur la page, avec `successMessage` / `submitLabel` résolus (voir [message de succès](#message-de-succès-et-libellé-du-bouton)).
 - Le script [htmx.org](https://htmx.org/) est chargé une fois par page (`form-htmx-script`) ; le rafraîchissement CSRF / Honeytime est géré via `htmx:afterSwap` (remplace les snippets `form-csrf-refresh` / `form-honeytime-refresh` en mode HTMX).
 - Dégradation gracieuse : `action` + `method="post"` restent présents si JavaScript est désactivé.
+
+#### Session après soumission HTMX
+
+`withoutFlashing()` désactive le flash des données et erreurs Uniform, mais `Form::done()` écrit toujours `form.success` en session. Sans traitement complémentaire, un rechargement de page affichait le message de succès (avec le texte du template) alors que l’utilisateur venait déjà de le voir via HTMX.
+
+Le plugin appelle `finalizeHtmxSubmitFlash()` après chaque réponse HTMX :
+
+| Cas | Effet |
+|-----|--------|
+| Envoi réussi | `form.success`, `form.data` et `form.errors` sont effacés — pas d’état fantôme au rechargement |
+| Erreur de validation | `form.success` = `false` ; données et erreurs flashées pour repli sans JS (`flashFormDataForRender`) |
+
+La clé de présentation `repliq-form.presentation.{formKey}` (message de succès, libellé submit) n’est pas effacée : elle sert aux envois HTMX suivants sur la même visite.
 
 **Options** (`baptiste.kirby-form-snippets.htmx`)
 
@@ -393,7 +446,8 @@ Préfixe : `baptiste.kirby-form-snippets.`
 | `forms` | Registre des formulaires |
 | `placeholder` | Placeholder inputs/textarea |
 | `maxLength.input` / `.textarea` | Limites caractères (validation + attribut HTML `maxlength`) |
-| `messages.*` | Messages d'erreur Uniform |
+| `messages.*` | Messages de validation Uniform + `messages.success` (message de remerciement par défaut) |
+| `submitLabel` | Libellé bouton submit par défaut (`Envoyer`) |
 | `csrf.*` | Route et sélecteurs CSRF |
 | `honeytime.*` | Guard Honeytime (`enabled`, `key`, `seconds`, `field`, `route`) |
 | `submit.route` | Préfixe URL soumission |
@@ -401,7 +455,9 @@ Préfixe : `baptiste.kirby-form-snippets.`
 | `defaultEmailTemplate` | Template email Uniform si absent de la config (`emails/submition.html`) |
 | `defaultEmailTheme` | Thème visuel par défaut de l'email (couleurs, logo, intro, footer…) |
 
-Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `honeytime`, `honeytimeInvalid`, `in`.
+Clés `messages.*` : `required`, `requiredSelect`, `requiredCheckbox`, `requiredCheckboxGroup`, `requiredRadioGroup`, `email`, `tel`, `maxLengthInput`, `maxLengthTextarea`, `honeypot`, `honeytime`, `honeytimeInvalid`, `in`, `submit`, `success`.
+
+Par formulaire (`forms.{formKey}`), en plus de `fields` / `email` / `htmx` : `successMessage`, `submitLabel`.
 
 ## Block Panel
 

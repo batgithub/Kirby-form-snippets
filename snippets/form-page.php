@@ -16,8 +16,12 @@ extract($formData);
 
 $formClass = $formClass ?? ('repliq-form-' . $formKey);
 $formSelector = $formSelector ?? ('.' . $formClass);
-$submitLabel = $submitLabel ?? 'Envoyer';
-$successMessage = $successMessage ?? 'Merci, votre message a bien été envoyé.';
+$submitLabel = $submitLabel ?? RepliqForm::resolveSubmitLabel((string) $formKey);
+$successMessage = $successMessage ?? RepliqForm::resolveSuccessMessage((string) $formKey);
+RepliqForm::rememberFormPresentation((string) $formKey, [
+    'successMessage' => $successMessage,
+    'submitLabel' => $submitLabel,
+]);
 $errorsSummarySetting = RepliqForm::resolveErrorsSummarySetting(
     (string) $formKey,
     isset($errorsSummary) ? $errorsSummary : null

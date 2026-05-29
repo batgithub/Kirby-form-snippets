@@ -49,6 +49,12 @@ abstract class TestCase extends PHPUnitTestCase
         $flash->set(BaseForm::FLASH_KEY_ERRORS, null);
         $flash->set(Form::FLASH_KEY_SUCCESS, null);
 
+        foreach (array_keys($flash->all()) as $key) {
+            if (str_starts_with((string) $key, 'repliq-form.presentation.')) {
+                $flash->set($key, null);
+            }
+        }
+
         $this->simulateRequest('GET');
         $this->resetHtmxScriptState();
     }

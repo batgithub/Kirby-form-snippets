@@ -20,6 +20,8 @@ class RepliqForm
 {
     private const SUBMIT_ERROR_KEY = '_submit';
 
+    private const FLASH_KEY_PRESENTATION_PREFIX = 'repliq-form.presentation.';
+
     private static bool $htmxScriptLoaded = false;
 
     /** @var list<string> */
@@ -115,7 +117,10 @@ class RepliqForm
                     ->emailAction($emailConfig)
                     ->done();
 
-                return self::respondHtmx($key, $pipeline, $config);
+                $response = self::respondHtmx($key, $pipeline, $config);
+                self::finalizeHtmxSubmitFlash($pipeline->success());
+
+                return $response;
             }
 
             $pipeline->emailAction($emailConfig)->done();
@@ -139,6 +144,92 @@ class RepliqForm
         return 'L\'envoi du formulaire a échoué. Veuillez réessayer ou nous contacter directement.';
     }
 
+    public static function resolveSuccessMessage(string $formKey): string
+    {
+        $stored = self::getStoredPresentation($formKey)['successMessage'] ?? '';
+
+        if (is_string($stored) && $stored !== '') {
+            return $stored;
+        }
+
+        $config = self::getFormConfig($formKey);
+
+        if (is_array($config)) {
+            $fromConfig = $config['successMessage'] ?? null;
+
+            if (is_string($fromConfig) && $fromConfig !== '') {
+                return $fromConfig;
+            }
+        }
+
+        $message = option('baptiste.kirby-form-snippets.messages.success');
+
+        if (is_string($message) && $message !== '') {
+            return $message;
+        }
+
+        return 'Merci, votre message a bien été envoyé.';
+    }
+
+    public static function resolveSubmitLabel(string $formKey, string $default = 'Envoyer'): string
+    {
+        $stored = self::getStoredPresentation($formKey)['submitLabel'] ?? '';
+
+        if (is_string($stored) && $stored !== '') {
+            return $stored;
+        }
+
+        $config = self::getFormConfig($formKey);
+
+        if (is_array($config)) {
+            $fromConfig = $config['submitLabel'] ?? null;
+
+            if (is_string($fromConfig) && $fromConfig !== '') {
+                return $fromConfig;
+            }
+        }
+
+        $label = option('baptiste.kirby-form-snippets.submitLabel');
+
+        if (is_string($label) && $label !== '') {
+            return $label;
+        }
+
+        return $default;
+    }
+
+    /**
+     * @param array{successMessage?: string, submitLabel?: string} $presentation
+     */
+    public static function rememberFormPresentation(string $formKey, array $presentation): void
+    {
+        $payload = [];
+
+        if (isset($presentation['successMessage'])
+            && is_string($presentation['successMessage'])
+            && $presentation['successMessage'] !== ''
+        ) {
+            $payload['successMessage'] = $presentation['successMessage'];
+        }
+
+        if (isset($presentation['submitLabel'])
+            && is_string($presentation['submitLabel'])
+            && $presentation['submitLabel'] !== ''
+        ) {
+            $payload['submitLabel'] = $presentation['submitLabel'];
+        }
+
+        if ($payload === []) {
+            return;
+        }
+
+        $flash = Flash::getInstance();
+        $key = self::FLASH_KEY_PRESENTATION_PREFIX . $formKey;
+        $existing = $flash->get($key, []);
+        $merged = array_merge(is_array($existing) ? $existing : [], $payload);
+        $flash->set($key, $merged);
+    }
+
     /**
      * @param array<string, mixed> $config
      */
@@ -155,7 +246,10 @@ class RepliqForm
         $failedForm = new Form($formConfig->getRules());
 
         if (self::isHtmxRequest()) {
-            return self::respondHtmx($key, $failedForm, $config);
+            $response = self::respondHtmx($key, $failedForm, $config);
+            self::finalizeHtmxSubmitFlash(false);
+
+            return $response;
         }
 
         go(Url::last());
@@ -291,6 +385,8 @@ class RepliqForm
                 'mode' => $mode,
                 'honeytime' => self::resolveHoneytimeGuardOptions($config),
             ],
+            'successMessage' => self::resolveSuccessMessage($key),
+            'submitLabel' => self::resolveSubmitLabel($key),
             'htmx' => [
                 'enabled' => true,
                 'loadScript' => false,
@@ -307,6 +403,33 @@ class RepliqForm
         $flash = Flash::getInstance();
         $flash->set(BaseForm::FLASH_KEY_DATA, $form->data('', '', false));
         $flash->set(BaseForm::FLASH_KEY_ERRORS, $form->errors());
+        $flash->set(Form::FLASH_KEY_SUCCESS, false);
+    }
+
+    private static function finalizeHtmxSubmitFlash(bool $success): void
+    {
+        $flash = Flash::getInstance();
+
+        if ($success) {
+            $flash->set(Form::FLASH_KEY_SUCCESS, null);
+            $flash->set(BaseForm::FLASH_KEY_DATA, null);
+            $flash->set(BaseForm::FLASH_KEY_ERRORS, null);
+
+            return;
+        }
+
+        $flash->set(Form::FLASH_KEY_SUCCESS, false);
+    }
+
+    /**
+     * @return array{successMessage?: string, submitLabel?: string}
+     */
+    private static function getStoredPresentation(string $formKey): array
+    {
+        $flash = Flash::getInstance();
+        $stored = $flash->get(self::FLASH_KEY_PRESENTATION_PREFIX . $formKey, []);
+
+        return is_array($stored) ? $stored : [];
     }
 
     /**

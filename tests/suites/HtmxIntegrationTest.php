@@ -81,6 +81,60 @@ final class HtmxIntegrationTest extends TestCase
         $this->assertStringNotContainsString('method="post"', $output);
     }
 
+    public function testHtmxSubmitUsesRememberedSuccessMessage(): void
+    {
+        $customMessage = 'Message personnalisé après envoi HTMX';
+        RepliqForm::rememberFormPresentation('contact', [
+            'successMessage' => $customMessage,
+        ]);
+
+        $route = (string) option('baptiste.kirby-form-snippets.submit.route');
+        $this->simulateRequest(
+            'POST',
+            $this->postWithCsrf([
+                'name' => 'Jane Doe',
+                'email' => 'jane@example.com',
+                'message' => 'Bonjour via HTMX',
+                'website' => '',
+            ]),
+            '/' . $route . '/contact',
+            ['HX-Request' => 'true']
+        );
+
+        $response = RepliqForm::handleSubmit('contact');
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertStringContainsString($customMessage, $response->body());
+        $this->assertStringNotContainsString(
+            'Merci, votre message a bien été envoyé.',
+            $response->body()
+        );
+    }
+
+    public function testHtmxSubmitDoesNotFlashSuccessForNextPageLoad(): void
+    {
+        $route = (string) option('baptiste.kirby-form-snippets.submit.route');
+        $this->simulateRequest(
+            'POST',
+            $this->postWithCsrf([
+                'name' => 'Jane Doe',
+                'email' => 'jane@example.com',
+                'message' => 'Bonjour via HTMX',
+                'website' => '',
+            ]),
+            '/' . $route . '/contact',
+            ['HX-Request' => 'true']
+        );
+
+        RepliqForm::handleSubmit('contact');
+
+        $this->simulateRequest('GET', [], '/');
+
+        $formData = repliq_form('contact');
+        $this->assertNotNull($formData);
+        $this->assertFalse($formData['form']->success());
+    }
+
     public function testFormPageSnippetRendersHtmxAttributesWhenEnabled(): void
     {
         $this->resetHtmxScriptState();

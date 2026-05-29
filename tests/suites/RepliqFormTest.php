@@ -559,6 +559,15 @@ final class RepliqFormTest extends TestCase
         $this->assertStringContainsString('Email', $html);
     }
 
+    public function testResolveSuccessMessagePrefersRememberedPresentation(): void
+    {
+        RepliqForm::rememberFormPresentation('contact', [
+            'successMessage' => 'Merci depuis le block',
+        ]);
+
+        $this->assertSame('Merci depuis le block', RepliqForm::resolveSuccessMessage('contact'));
+    }
+
     public function testResolveHtmxSettingIsDisabledByDefault(): void
     {
         $setting = RepliqForm::resolveHtmxSetting('contact');

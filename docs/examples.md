@@ -617,6 +617,13 @@ Soumission sans rechargement de page via [htmx](https://htmx.org/). Le plugin in
 <?php snippet('form-page', ['formKey' => 'contact']) ?>
 ```
 
+**Message de succès en HTMX** — la route `submit` ne connaît pas les paramètres du template. Pour un texte personnalisé après envoi AJAX :
+
+- passer `successMessage` au snippet (ou utiliser le block `contact-form` du Panel), **ou**
+- définir `forms.contact.successMessage` / `messages.success` dans `config.php`.
+
+Voir [tech.md — Message de succès et libellé du bouton](tech.md#message-de-succès-et-libellé-du-bouton) et [Session après soumission HTMX](tech.md#session-après-soumission-htmx).
+
 Par défaut, le script htmx.org est chargé une fois par page depuis le CDN (`form-htmx-script`). Les routes CSRF et Honeytime doivent rester hors cache — voir [tech.md](tech.md#cache).
 
 ---

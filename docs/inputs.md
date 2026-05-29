@@ -415,8 +415,8 @@ Ordre : **`config.php`** → hook → overrides. Le Panel est lu via `optionsFro
 | `formData` | — |
 | `formClass` | `repliq-form-{formKey}` |
 | `formSelector` | `.{formClass}` |
-| `submitLabel` | `Envoyer` |
-| `successMessage` | message de remerciement |
+| `submitLabel` | `Envoyer` (résolution : session → config formulaire → option globale) |
+| `successMessage` | message de remerciement (idem ; requis pour HTMX si hors block Panel — voir [tech.md](tech.md#message-de-succès-et-libellé-du-bouton)) |
 
 ### `form-filter`
 
